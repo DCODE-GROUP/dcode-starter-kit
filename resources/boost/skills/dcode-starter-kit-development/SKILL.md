@@ -22,9 +22,20 @@ Use this skill when a Laravel application needs to integrate the Dcode Starter K
 - confirm the app is a Laravel project
 - inspect the target code paths where the package should be applied
 
-### 2. Apply the package's public API
+### 2. Install the package and its application dependencies
 
-Document how to integrate Dcode Starter Kit here, replacing this placeholder with the integration steps for your package.
+- install the package as a development dependency:
+
+  ```bash
+  composer require --dev dcodegroup/dcode-starter-kit
+  ```
+
+- run `php artisan dcode:install` from the consuming application's root
+- ensure private Composer repositories and credentials are configured before running the command
+- review the application's `composer.json` after installation; all listed runtime and development dependencies belong to the application and can be managed independently
+- rerun `php artisan dcode:install` after correcting a failed Composer step
+
+The command currently installs dependencies only. It does not publish configuration or migrations, run migrations, configure Git hooks, or perform other package-specific setup.
 
 ## Rules, References, and Templates
 
@@ -34,8 +45,9 @@ Read before executing:
 
 ## Examples
 
-- describe a representative integration scenario for Dcode Starter Kit
+- Add the package to a new Laravel application with `composer require --dev dcodegroup/dcode-starter-kit`, then run `php artisan dcode:install`.
 
 ## Anti-patterns
 
-- do not document package internals here; keep the skill focused on adoption in Laravel apps
+- do not run the installer before the consuming application's Composer repositories and credentials are configured
+- do not promise package-specific configuration or Git hook setup; those steps are not implemented yet

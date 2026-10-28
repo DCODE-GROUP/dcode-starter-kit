@@ -10,58 +10,49 @@
     <a href="https://packagist.org/packages/dcodegroup/dcode-starter-kit"><img src="https://img.shields.io/packagist/dt/dcodegroup/dcode-starter-kit.svg?style=flat-square" alt="Total Downloads"></a>
 </p>
 
-Our standard templates and auth structure for new projects
+An installation helper for adding DCode Group's standard Laravel application dependencies to a new or existing application.
 
 ## Installation
 
 You can install the package via Composer:
 
 ```bash
-composer require dcodegroup/dcode-starter-kit
+composer require --dev dcodegroup/dcode-starter-kit
 ```
 
-You may publish all of the package's resources at once:
+Run the installer from the consuming Laravel application:
 
 ```bash
-php artisan vendor:publish --tag="dcode-starter-kit"
+php artisan dcode:install
 ```
 
-Or, you may publish each resource individually:
+The command adds these regular Composer dependencies:
 
-### Publishing the Configuration File
+- `bugsnag/bugsnag-laravel`
+- `dcodegroup/activity-log`
+- `dcodegroup/laravel-attachments-backend`
+- `spatie/cpu-load-health-check`
+- `spatie/laravel-health`
+- `spatie/laravel-log-dumper`
+- `spatie/laravel-login-link`
+- `spatie/laravel-model-status`
+- `spatie/laravel-permission`
+- `spatie/laravel-query-builder`
+- `tightenco/ziggy`
 
-```bash
-php artisan vendor:publish --tag="dcode-starter-kit-config"
-```
+It adds this development dependency:
 
-### Publishing and Running the Migrations
+- `dcode-group/composer-git-hooks`
 
-```bash
-php artisan vendor:publish --tag="dcode-starter-kit-migrations"
-php artisan migrate
-```
+These dependencies are added directly to the consuming application and can be managed independently after installation. Any private repositories and credentials must already be configured in that application and its environment.
 
-### Publishing the Views
+This initial installer only adds dependencies. It does not yet publish package configuration or migrations, run migrations, configure Git hooks, or perform other package-specific setup.
 
-```bash
-php artisan vendor:publish --tag="dcode-starter-kit-views"
-```
-
-### Publishing the Translations
-
-```bash
-php artisan vendor:publish --tag="dcode-starter-kit-lang"
-```
-
-### Publishing the Public Assets
-
-```bash
-php artisan vendor:publish --tag="dcode-starter-kit-assets"
-```
+Composer output is streamed to the terminal. If either dependency group fails, the command stops and returns a failure status; a development dependency failure means the runtime dependencies may already have been installed. Fix the application or Composer configuration and run `php artisan dcode:install` again. Composer safely handles already-installed entries when rerunning the command.
 
 ## Usage
 
-<!-- Add a basic usage example here. -->
+The package currently exposes the `dcode:install` command only.
 
 ## Changelog
 

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitDependencies;
 use DcodeStarterKit\DcodeStarterKit\DcodeStarterKit;
 
 it('resolves the singleton', function () {
@@ -24,8 +25,14 @@ it('loads the package views', function () {
     expect(view()->exists('dcode-starter-kit::placeholder'))->toBeTrue();
 });
 
-it('registers the artisan command', function () {
-    $this->artisan('dcode-starter-kit:placeholder')
-        ->expectsOutputToContain('DcodeStarterKit placeholder command executed.')
+it('registers the install artisan command', function () {
+    app()->instance(InstallDcodeStarterKitDependencies::class, new InstallDcodeStarterKitDependencies(
+        function (array $arguments, string $workingDirectory, callable $output): bool {
+            return true;
+        },
+    ));
+
+    $this->artisan('dcode:install')
+        ->expectsOutputToContain('Dcode Starter Kit dependencies installed successfully.')
         ->assertSuccessful();
 });

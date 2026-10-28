@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DcodeStarterKit\DcodeStarterKit;
 
-use DcodeStarterKit\DcodeStarterKit\Console\Commands\DcodeStarterKitCommand;
+use DcodeStarterKit\DcodeStarterKit\Console\Commands\InstallCommand;
 use Illuminate\Support\ServiceProvider;
 
 class DcodeStarterKitServiceProvider extends ServiceProvider
@@ -55,7 +55,7 @@ class DcodeStarterKitServiceProvider extends ServiceProvider
         ], ['dcode-starter-kit', 'dcode-starter-kit-migrations']);
 
         $this->commands([
-            DcodeStarterKitCommand::class,
+            InstallCommand::class,
         ]);
     }
 }
