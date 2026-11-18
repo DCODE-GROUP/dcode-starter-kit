@@ -31,12 +31,26 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->and(is_file($directory.'/resources/js/dcode-starter-kit.ts'))->toBeTrue()
         ->and(is_file($directory.'/vite.config.dcode.ts'))->toBeTrue();
 
+    $viteConfig = (string) file_get_contents($directory.'/vite.config.dcode.ts');
+    expect($viteConfig)->toContain('import.meta.dirname')
+        ->and($viteConfig)->toContain('resources/js/types/index.ts')
+        ->toContain('node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.esm.js');
+    expect(file_get_contents($directory.'/resources/css/dcode-starter-kit.css'))
+        ->toContain('../../node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.css');
+    expect(file_get_contents($directory.'/resources/js/dcode-starter-kit.ts'))
+        ->not->toContain('import { trans }');
+
     $package = json_decode((string) file_get_contents($directory.'/package.json'), true);
     expect($package['devDependencies']['vue'])->toBe('^3.5')
+        ->and($package['devDependencies']['@dcodegroup-au/dsg-vue'])->toBe('^1.0.15-next')
+        ->and($package['scripts']['dev'])->toBe('vite --config vite.config.dcode.ts')
         ->and($package['scripts']['build'])->toBe('vite build --config vite.config.dcode.ts')
         ->and($package['scripts']['dcode:build'])->toBe('pnpm run build')
         ->and($package['packageManager'])->toBe('pnpm@9.0.0')
-        ->and($package['engines']['pnpm'])->toBe('>=9.0.0');
+        ->and($package['engines']['pnpm'])->toBe('>=9.0.0')
+        ->and($package['pnpm'] ?? null)->toBeNull();
+
+    expect(file_get_contents($directory.'/pnpm-workspace.yaml'))->toContain("allowBuilds:\n  '@dcodegroup-au/dsg-vue': true");
 
     $routes = (string) file_get_contents($directory.'/routes/web.php');
     expect(substr_count($routes, '// Dcode Starter Kit frontend routes'))->toBe(1)
@@ -79,7 +93,9 @@ it('can be rerun without treating its own generated files as conflicts', functio
     });
 
     expect($action->install($directory, fn () => null))->toBeTrue()
+        ->and(file_put_contents($directory.'/pnpm-workspace.yaml', "onlyBuiltDependencies:\n  - @dcodegroup-au/dsg-vue\n"))->toBeGreaterThan(0)
         ->and($action->install($directory, fn () => null))->toBeTrue()
+        ->and(file_get_contents($directory.'/pnpm-workspace.yaml'))->toContain("allowBuilds:\n  '@dcodegroup-au/dsg-vue': true")
         ->and($calls)->toBe(4);
 });
 

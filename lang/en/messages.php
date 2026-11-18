@@ -7,6 +7,26 @@ return [
     'auth' => [
         'failed' => 'These credentials do not match our records.',
         'reset_sent' => 'If an account exists for that email, a reset link has been sent.',
+        'page_titles' => [
+            'login' => 'Sign in',
+            'forgot_password' => 'Forgot your password?',
+            'reset_password' => 'Reset password',
+        ],
+        'fields' => [
+            'email' => 'Email address',
+            'password' => 'Password',
+            'remember_me' => 'Remember me',
+            'confirm_password' => 'Confirm password',
+        ],
+        'buttons' => [
+            'login' => 'Sign in',
+            'forgot_password' => 'Forgot your password?',
+            'send_reset' => 'Send reset link',
+            'reset_password' => 'Reset password',
+        ],
+        'placeholders' => [
+            'email' => 'Enter your email address',
+        ],
         'login' => 'Sign in',
         'email' => 'Email address',
         'password' => 'Password',

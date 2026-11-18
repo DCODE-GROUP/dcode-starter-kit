@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "../../node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.css";
+@import "../../node_modules/@dcodegroup-au/dsg-vue/dist/styles/app.css";
 
 @theme {
   --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;

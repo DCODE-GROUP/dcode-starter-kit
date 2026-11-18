@@ -1,2 +1,22 @@
-<script setup lang="ts">import { Link, useForm } from "@inertiajs/vue3"; import Auth from "../../layouts/Auth.vue"; import { useDcodeTranslations } from "../../composables/useDcodeTranslations"; const { translate } = useDcodeTranslations(); const form = useForm({ email: "" }); defineOptions({ layout: Auth });</script>
-<template><form class="space-y-5" @submit.prevent="form.post('/forgot-password')"><label class="block text-sm font-medium">{{ translate('auth.email') }}<input v-model="form.email" type="email" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><button class="w-full rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white">{{ translate('auth.send_reset') }}</button><Link href="/login" class="block text-center text-sm text-indigo-600">{{ translate('auth.login') }}</Link></form></template>
+<template>
+  <AuthLayout :title="translate('auth.page_titles.forgot_password')">
+    <form class="auth__content-body flex flex-col gap-5" @submit.prevent="submit">
+      <DsgInput v-model="form.email" type="email" name="email" :label="translate('auth.fields.email')" :placeholder="translate('auth.placeholders.email')" :errors="form.errors.email" autocomplete="email" />
+      <DsgButton type="submit" :label="translate('auth.buttons.send_reset')" width="full" />
+      <DsgButton :uri="route('dcode.login')" :label="translate('auth.buttons.login')" theme="brand-link" size="sm" />
+    </form>
+  </AuthLayout>
+</template>
+
+<script setup lang="ts">
+import { useForm } from "@inertiajs/vue3";
+import { DsgButton, DsgInput } from "@dsg";
+import { route } from "ziggy-js";
+import AuthLayout from "@layouts/Auth.vue";
+import { useLaravelLocale } from "@composables/useLaravelLocale";
+
+const { trans: translate } = useLaravelLocale();
+const form = useForm({ email: "" });
+const submit = (): void => form.post(route("dcode.password.email"));
+defineOptions({ layout: AuthLayout });
+</script>

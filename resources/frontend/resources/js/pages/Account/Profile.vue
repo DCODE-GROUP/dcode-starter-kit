@@ -1,2 +1,26 @@
-<script setup lang="ts">import { useForm } from "@inertiajs/vue3"; import App from "../../layouts/App.vue"; import { useDcodeTranslations } from "../../composables/useDcodeTranslations"; const { translate } = useDcodeTranslations(); const props = defineProps<{ user: { name?: string; email: string } }>(); const form = useForm({ name: props.user.name || "", email: props.user.email }); defineOptions({ layout: App });</script>
-<template><div class="max-w-xl"><h1 class="text-3xl font-semibold">{{ translate('account.profile') }}</h1><form class="mt-8 space-y-5 rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200" @submit.prevent="form.patch('/account/profile')"><label class="block text-sm font-medium">{{ translate('account.name') }}<input v-model="form.name" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label class="block text-sm font-medium">{{ translate('auth.email') }}<input v-model="form.email" type="email" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><button class="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white">{{ translate('account.update') }}</button></form></div></template>
+<template>
+  <AppLayout :title="translate('account.profile')">
+    <form class="max-w-xl rounded-lg bg-white p-6 shadow-sm" @submit.prevent="submit">
+      <div class="flex flex-col gap-5">
+        <DsgInput v-model="form.name" name="name" :label="translate('account.name')" :errors="form.errors.name" autocomplete="name" />
+        <DsgInput v-model="form.email" type="email" name="email" :label="translate('auth.fields.email')" :errors="form.errors.email" autocomplete="email" />
+        <DsgButton type="submit" :label="translate('account.update')" />
+      </div>
+    </form>
+  </AppLayout>
+</template>
+
+<script setup lang="ts">
+import { useForm } from "@inertiajs/vue3";
+import { DsgButton, DsgInput } from "@dsg";
+import { route } from "ziggy-js";
+import AppLayout from "@layouts/App.vue";
+import { useLaravelLocale } from "@composables/useLaravelLocale";
+import type { DcodeUser } from "../../types";
+
+const props = defineProps<{ user: DcodeUser }>();
+const { trans: translate } = useLaravelLocale();
+const form = useForm({ name: props.user.name ?? "", email: props.user.email });
+const submit = (): void => form.patch(route("dcode.profile.update"));
+defineOptions({ layout: AppLayout });
+</script>

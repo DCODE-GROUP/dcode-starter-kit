@@ -1,2 +1,26 @@
-<script setup lang="ts">import { useForm } from "@inertiajs/vue3"; import Auth from "../../layouts/Auth.vue"; import { useDcodeTranslations } from "../../composables/useDcodeTranslations"; const { translate } = useDcodeTranslations(); const props = defineProps<{ token: string; email?: string }>(); const form = useForm({ token: props.token, email: props.email || "", password: "", password_confirmation: "" }); defineOptions({ layout: Auth });</script>
-<template><form class="space-y-5" @submit.prevent="form.post('/reset-password')"><label class="block text-sm font-medium">{{ translate('auth.email') }}<input v-model="form.email" type="email" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label class="block text-sm font-medium">{{ translate('auth.password') }}<input v-model="form.password" type="password" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label class="block text-sm font-medium">{{ translate('auth.confirm_password') }}<input v-model="form.password_confirmation" type="password" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><button class="w-full rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white">{{ translate('auth.reset') }}</button></form></template>
+<template>
+  <AuthLayout :title="translate('auth.page_titles.reset_password')">
+    <form class="auth__content-body flex flex-col gap-5" @submit.prevent="submit">
+      <DsgInput v-model="form.email" type="email" name="email" :label="translate('auth.fields.email')" :errors="form.errors.email" />
+      <DsgInput v-model="form.password" type="password" name="password" :label="translate('auth.fields.password')" :errors="form.errors.password" />
+      <DsgInput v-model="form.password_confirmation" type="password" name="password_confirmation" :label="translate('auth.fields.confirm_password')" :errors="form.errors.password_confirmation" />
+      <DsgButton type="submit" :label="translate('auth.buttons.reset_password')" width="full" />
+      <DsgButton :uri="route('dcode.login')" :label="translate('auth.buttons.login')" theme="brand-link" size="sm" />
+    </form>
+  </AuthLayout>
+</template>
+
+<script setup lang="ts">
+import { useForm } from "@inertiajs/vue3";
+import { DsgButton, DsgInput } from "@dsg";
+import { route } from "ziggy-js";
+import AuthLayout from "@layouts/Auth.vue";
+import { useLaravelLocale } from "@composables/useLaravelLocale";
+import type { ResetPasswordPageProps } from "../../types";
+
+const props = defineProps<ResetPasswordPageProps>();
+const { trans: translate } = useLaravelLocale();
+const form = useForm({ token: props.token, email: props.email ?? "", password: "", password_confirmation: "" });
+const submit = (): void => form.post(route("dcode.password.update"));
+defineOptions({ layout: AuthLayout });
+</script>

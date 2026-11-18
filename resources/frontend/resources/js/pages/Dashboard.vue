@@ -1,2 +1,20 @@
-<script setup lang="ts">import { usePage } from "@inertiajs/vue3"; import App from "../layouts/App.vue"; import { useDcodeTranslations } from "../composables/useDcodeTranslations"; const { translate } = useDcodeTranslations(); const page = usePage<{ auth: { user: { name?: string; email: string } } }>(); defineOptions({ layout: App });</script>
-<template><div><h1 class="text-3xl font-semibold">{{ translate('dashboard.title') }}</h1><p class="mt-3 text-slate-600">{{ translate('dashboard.welcome', { name: page.props.auth.user.name || page.props.auth.user.email }) }}</p><div class="mt-8 rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200"><p class="text-slate-600">{{ translate('dashboard.description') }}</p></div></div></template>
+<template>
+  <AppLayout :title="translate('dashboard.title')">
+    <section class="rounded-lg bg-white p-6 shadow-sm">
+      <h2 class="lead-1 font-semibold">{{ translate('dashboard.welcome', { name: user.name || user.email }) }}</h2>
+      <p class="mt-2 text-gray-600">{{ translate('dashboard.description') }}</p>
+    </section>
+  </AppLayout>
+</template>
+
+<script setup lang="ts">
+import { usePage } from "@inertiajs/vue3";
+import AppLayout from "@layouts/App.vue";
+import { useLaravelLocale } from "@composables/useLaravelLocale";
+import type { DcodeUser } from "../types";
+
+const { trans: translate } = useLaravelLocale();
+const page = usePage<{ auth: { user: DcodeUser } }>();
+const user = page.props.auth.user;
+defineOptions({ layout: AppLayout });
+</script>

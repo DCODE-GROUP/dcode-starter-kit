@@ -7,6 +7,7 @@ import "../css/dcode-starter-kit.css";
 createInertiaApp({
   resolve: (name) => resolvePageComponent(`./pages/${name}.vue`, import.meta.glob("./pages/**/*.vue")),
   setup({ el, App, props, plugin }) {
-    createApp({ render: () => h(App, props) }).use(plugin).use(ZiggyVue).mount(el);
+    const vueApp = createApp({ render: () => h(App, props) });
+    vueApp.use(plugin).use(ZiggyVue).mount(el);
   },
 });

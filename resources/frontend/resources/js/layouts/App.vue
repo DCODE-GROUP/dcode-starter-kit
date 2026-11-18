@@ -1,12 +1,28 @@
-<script setup lang="ts">
-import { Link, usePage } from "@inertiajs/vue3";
-import { useDcodeTranslations } from "../composables/useDcodeTranslations";
-const { translate } = useDcodeTranslations();
-const page = usePage<{ auth: { user: { name?: string; email: string } } }>();
-</script>
 <template>
-  <div class="min-h-screen bg-slate-50 md:flex">
-    <aside class="w-full border-b border-slate-200 bg-white p-5 md:min-h-screen md:w-64 md:border-b-0 md:border-r"><div class="text-lg font-semibold text-indigo-700">{{ translate('navigation.dashboard') }}</div><nav class="mt-8 space-y-1"><Link href="/dashboard" class="block rounded-lg px-3 py-2 text-sm hover:bg-slate-100">{{ translate('navigation.dashboard') }}</Link><Link href="/account/profile" class="block rounded-lg px-3 py-2 text-sm hover:bg-slate-100">{{ translate('navigation.account') }}</Link></nav></aside>
-    <main class="flex-1"><header class="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4"><span class="text-sm text-slate-500">{{ page.props.auth.user?.name || page.props.auth.user?.email }}</span><Link href="/logout" method="post" as="button" class="text-sm font-medium text-slate-600 hover:text-slate-900">{{ translate('navigation.logout') }}</Link></header><div class="mx-auto max-w-6xl p-6"><slot /></div></main>
+  <Head v-if="title" :title="title" />
+  <div class="flex min-h-screen flex-row bg-gray-neutral-100">
+    <aside class="flex w-64 flex-col border-r border-gray-200 bg-white p-4">
+      <div class="border-b border-gray-200 px-3 py-4 text-lg font-semibold text-brand-700">{{ translate("navigation.dashboard") }}</div>
+      <nav class="flex flex-1 flex-col gap-2 py-6">
+        <DsgButton :uri="route('dcode.dashboard')" :label="translate('navigation.dashboard')" theme="gray-link" />
+        <DsgButton :uri="route('dcode.profile.edit')" :label="translate('account.profile')" theme="gray-link" />
+        <DsgButton :uri="route('dcode.password.edit')" :label="translate('account.password')" theme="gray-link" />
+      </nav>
+      <Link :href="route('dcode.logout')" method="post" as="button" class="dsg-button dsg-button--gray-secondary w-full">{{ translate('navigation.logout') }}</Link>
+    </aside>
+    <main class="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div v-if="title" class="flex items-center px-8 pt-8"><h1 class="display-sm flex-1 font-semibold">{{ title }}</h1></div>
+      <div class="flex-1 px-8 py-6"><slot /></div>
+    </main>
   </div>
 </template>
+
+<script setup lang="ts">
+import { Head, Link } from "@inertiajs/vue3";
+import { route } from "ziggy-js";
+import { DsgButton } from "@dsg";
+import { useLaravelLocale } from "@composables/useLaravelLocale";
+
+defineProps<{ title?: string }>();
+const { trans: translate } = useLaravelLocale();
+</script>

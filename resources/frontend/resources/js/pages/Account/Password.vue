@@ -1,2 +1,25 @@
-<script setup lang="ts">import { useForm } from "@inertiajs/vue3"; import App from "../../layouts/App.vue"; import { useDcodeTranslations } from "../../composables/useDcodeTranslations"; const { translate } = useDcodeTranslations(); const form = useForm({ current_password: "", password: "", password_confirmation: "" }); defineOptions({ layout: App });</script>
-<template><div class="max-w-xl"><h1 class="text-3xl font-semibold">{{ translate('account.password') }}</h1><form class="mt-8 space-y-5 rounded-xl bg-white p-6 shadow-sm ring-1 ring-slate-200" @submit.prevent="form.put('/account/password')"><label class="block text-sm font-medium">{{ translate('account.current_password') }}<input v-model="form.current_password" type="password" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label class="block text-sm font-medium">{{ translate('account.new_password') }}<input v-model="form.password" type="password" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label class="block text-sm font-medium">{{ translate('auth.confirm_password') }}<input v-model="form.password_confirmation" type="password" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><button class="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white">{{ translate('account.update') }}</button></form></div></template>
+<template>
+  <AppLayout :title="translate('account.password')">
+    <form class="max-w-xl rounded-lg bg-white p-6 shadow-sm" @submit.prevent="submit">
+      <div class="flex flex-col gap-5">
+        <DsgInput v-model="form.current_password" type="password" name="current_password" :label="translate('account.current_password')" :errors="form.errors.current_password" />
+        <DsgInput v-model="form.password" type="password" name="password" :label="translate('account.new_password')" :errors="form.errors.password" />
+        <DsgInput v-model="form.password_confirmation" type="password" name="password_confirmation" :label="translate('auth.fields.confirm_password')" :errors="form.errors.password_confirmation" />
+        <DsgButton type="submit" :label="translate('account.update')" />
+      </div>
+    </form>
+  </AppLayout>
+</template>
+
+<script setup lang="ts">
+import { useForm } from "@inertiajs/vue3";
+import { DsgButton, DsgInput } from "@dsg";
+import { route } from "ziggy-js";
+import AppLayout from "@layouts/App.vue";
+import { useLaravelLocale } from "@composables/useLaravelLocale";
+
+const { trans: translate } = useLaravelLocale();
+const form = useForm({ current_password: "", password: "", password_confirmation: "" });
+const submit = (): void => form.put(route("dcode.password.store"));
+defineOptions({ layout: AppLayout });
+</script>

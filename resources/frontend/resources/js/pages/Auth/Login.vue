@@ -1,10 +1,24 @@
+<template>
+  <AuthLayout :title="translate('auth.page_titles.login')">
+    <form class="auth__content-body flex flex-col gap-5" @submit.prevent="submit">
+      <DsgInput v-model="form.email" type="email" name="email" :label="translate('auth.fields.email')" :placeholder="translate('auth.placeholders.email')" :errors="form.errors.email" autocomplete="email" />
+      <DsgInput v-model="form.password" type="password" name="password" :label="translate('auth.fields.password')" :errors="form.errors.password" autocomplete="current-password" />
+      <DsgCheckbox v-model="form.remember" name="remember" :label="translate('auth.fields.remember_me')" />
+      <DsgButton type="submit" :label="translate('auth.buttons.login')" width="full" />
+      <DsgButton :uri="route('dcode.password.request')" :label="translate('auth.buttons.forgot_password')" theme="brand-link" size="sm" />
+    </form>
+  </AuthLayout>
+</template>
+
 <script setup lang="ts">
-import { Link, useForm } from "@inertiajs/vue3";
-import Auth from "../../layouts/Auth.vue";
-import { useDcodeTranslations } from "../../composables/useDcodeTranslations";
-const { translate } = useDcodeTranslations();
+import { useForm } from "@inertiajs/vue3";
+import { DsgButton, DsgCheckbox, DsgInput } from "@dsg";
+import { route } from "ziggy-js";
+import AuthLayout from "@layouts/Auth.vue";
+import { useLaravelLocale } from "@composables/useLaravelLocale";
+
+const { trans: translate } = useLaravelLocale();
 const form = useForm({ email: "", password: "", remember: false });
-const submit = () => form.post("/login");
-defineOptions({ layout: Auth });
+const submit = (): void => form.post(route("dcode.login.store"));
+defineOptions({ layout: AuthLayout });
 </script>
-<template><form class="space-y-5" @submit.prevent="submit"><label class="block text-sm font-medium">{{ translate('auth.email') }}<input v-model="form.email" type="email" autocomplete="email" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label class="block text-sm font-medium">{{ translate('auth.password') }}<input v-model="form.password" type="password" autocomplete="current-password" class="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2" /></label><label class="flex items-center gap-2 text-sm"><input v-model="form.remember" type="checkbox" />{{ translate('auth.remember') }}</label><p v-if="form.errors.email" class="text-sm text-red-600">{{ form.errors.email }}</p><button class="w-full rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-500">{{ translate('auth.login') }}</button><Link href="/forgot-password" class="block text-center text-sm text-indigo-600">{{ translate('auth.forgot') }}</Link></form></template>

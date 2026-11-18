@@ -23,6 +23,7 @@ class InstallDcodeStarterKitFrontend
 
     private const array FRONTEND_DEPENDENCIES = [
         '@inertiajs/vue3' => '^3.0',
+        '@dcodegroup-au/dsg-vue' => '^1.0.15-next',
         '@vitejs/plugin-vue' => '^6.0',
         'laravel-vite-plugin' => '^3.0',
         'tailwindcss' => '^4.0',
@@ -52,6 +53,7 @@ class InstallDcodeStarterKitFrontend
             $this->copyFrontend($workingDirectory);
             $this->registerHostRoutes($workingDirectory);
             $this->updatePackageJson($workingDirectory);
+            $this->updatePnpmWorkspace($workingDirectory);
 
             if (! ($this->processRunner)(['pnpm', 'install'], $workingDirectory, $output)) {
                 $output("Unable to install frontend dependencies with pnpm.\n");
@@ -81,7 +83,7 @@ class InstallDcodeStarterKitFrontend
         foreach ($this->frontendSourceFiles() as $relative => $source) {
             $target = $workingDirectory.'/'.$relative;
 
-            if (is_file($target) && ! $this->filesMatch($source, $target)) {
+            if (is_file($target) && ! $this->filesMatch($source, $target) && ! $this->isLegacyGeneratedFile($relative, $target)) {
                 $conflicts[] = $relative;
             }
         }
@@ -127,11 +129,11 @@ class InstallDcodeStarterKitFrontend
                 mkdir(dirname($target), 0755, true);
             }
 
-            if (is_file($target) && ! $this->filesMatch($source, $target)) {
+            if (is_file($target) && ! $this->filesMatch($source, $target) && ! $this->isLegacyGeneratedFile($relative, $target)) {
                 throw new RuntimeException("Refusing to overwrite {$relative}.");
             }
 
-            if (! is_file($target)) {
+            if (! is_file($target) || $this->isLegacyGeneratedFile($relative, $target)) {
                 copy($source, $target);
             }
         }
@@ -158,6 +160,29 @@ class InstallDcodeStarterKitFrontend
     private function filesMatch(string $source, string $target): bool
     {
         return hash_file('sha256', $source) === hash_file('sha256', $target);
+    }
+
+    private function isLegacyGeneratedFile(string $relative, string $target): bool
+    {
+        $contents = file_get_contents($target);
+
+        if (! is_string($contents)) {
+            return false;
+        }
+
+        return match ($relative) {
+            'vite.config.dcode.ts' => str_contains($contents, 'laravel-vite-plugin')
+                && str_contains($contents, 'dcode-starter-kit.css'),
+            'tsconfig.dcode.json' => str_contains($contents, 'resources/**/*.vue')
+                && str_contains($contents, 'vite/client'),
+            'resources/css/dcode-starter-kit.css' => str_contains($contents, '@import "tailwindcss";')
+                && str_contains($contents, 'dsg-vue'),
+            'resources/js/pages/Auth/ResetPassword.vue' => str_contains($contents, '@inertiajs/vue3')
+                && str_contains($contents, 'AuthLayout'),
+            'resources/js/dcode-starter-kit.ts' => str_contains($contents, 'createInertiaApp')
+                && str_contains($contents, 'dcode-starter-kit.css'),
+            default => false,
+        };
     }
 
     private function updatePackageJson(string $workingDirectory): void
@@ -190,6 +215,14 @@ class InstallDcodeStarterKitFrontend
         $package['engines'] = is_array($package['engines'] ?? null) ? $package['engines'] : [];
         $package['engines']['pnpm'] ??= '>=9.0.0';
 
+        if (is_array($package['pnpm'] ?? null) && array_key_exists('onlyBuiltDependencies', $package['pnpm'])) {
+            unset($package['pnpm']['onlyBuiltDependencies']);
+        }
+
+        if (($package['pnpm'] ?? []) === []) {
+            unset($package['pnpm']);
+        }
+
         $package['devDependencies'] = is_array($package['devDependencies'] ?? null) ? $package['devDependencies'] : [];
         foreach (self::FRONTEND_DEPENDENCIES as $name => $version) {
             if (isset($package['dependencies'][$name]) || isset($package['devDependencies'][$name])) {
@@ -199,11 +232,53 @@ class InstallDcodeStarterKitFrontend
         }
 
         $package['scripts'] = is_array($package['scripts'] ?? null) ? $package['scripts'] : [];
+        $package['scripts']['dev'] = 'vite --config vite.config.dcode.ts';
         $package['scripts']['build'] = 'vite build --config vite.config.dcode.ts';
         $package['scripts']['dcode:build'] ??= 'pnpm run build';
         $package['scripts']['dcode:typecheck'] ??= 'vue-tsc --noEmit -p tsconfig.dcode.json';
 
         file_put_contents($path, json_encode($package, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n");
+    }
+
+    private function updatePnpmWorkspace(string $workingDirectory): void
+    {
+        $path = $workingDirectory.'/pnpm-workspace.yaml';
+        $contents = is_file($path) ? file_get_contents($path) : '';
+
+        if (! is_string($contents)) {
+            throw new RuntimeException('Unable to read pnpm-workspace.yaml.');
+        }
+
+        if (str_contains($contents, 'allowBuilds:') && str_contains($contents, '@dcodegroup-au/dsg-vue')) {
+            return;
+        }
+
+        if (str_contains($contents, 'onlyBuiltDependencies:')) {
+            $contents = preg_replace(
+                "~onlyBuiltDependencies:\\s*\\n(?:  - ['\"]?@dcodegroup-au/dsg-vue['\"]?\\s*\\n?)~",
+                "allowBuilds:\n  '@dcodegroup-au/dsg-vue': true\n",
+                $contents,
+                1,
+            ) ?? $contents;
+
+            if (str_contains($contents, 'allowBuilds:')) {
+                file_put_contents($path, $contents);
+
+                return;
+            }
+        }
+
+        if (str_contains($contents, 'allowBuilds:')) {
+            $contents = preg_replace(
+                '/(allowBuilds:\s*\n)/',
+                "$1  '@dcodegroup-au/dsg-vue': true\n",
+                $contents,
+                1,
+            ) ?? $contents;
+        } else {
+            $contents = rtrim($contents)."\n\nallowBuilds:\n  '@dcodegroup-au/dsg-vue': true\n";
+        }
+        file_put_contents($path, $contents);
     }
 
     private function registerHostRoutes(string $workingDirectory): void
