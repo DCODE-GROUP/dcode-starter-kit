@@ -192,7 +192,7 @@ class InstallDcodeStarterKitFrontend
             'resources/js/components/Navigation/AppSidebar.vue' => str_contains($contents, 'sidebar__nav')
                 && str_contains($contents, 'dcode.'),
             'resources/js/layouts/App.vue' => str_contains($contents, 'AppSidebar')
-                || str_contains($contents, 'dcode.dashboard'),
+                || str_contains($contents, 'admin.dashboard'),
             'resources/js/layouts/Auth.vue' => str_contains($contents, 'auth__container')
                 && str_contains($contents, '@inertiajs/vue3'),
             'resources/js/dcode-starter-kit.ts' => str_contains($contents, 'createInertiaApp')
@@ -317,6 +317,7 @@ class InstallDcodeStarterKitFrontend
 
         if (str_contains($contents, self::ROUTE_MARKER)) {
             $updated = $this->upgradeGeneratedRoutes($contents);
+            $updated = $this->addRouteImports($updated);
 
             if ($updated !== $contents) {
                 file_put_contents($path, $updated);
@@ -361,16 +362,30 @@ class InstallDcodeStarterKitFrontend
 
     private function addRouteImports(string $contents): string
     {
-        $imports = 'use App\\Http\\Controllers\\DashboardController;'."\n";
-        $imports .= 'use App\\Http\\Controllers\\Auth\\AuthenticatedSessionController;'."\n";
-        $imports .= 'use App\\Http\\Controllers\\Auth\\NewPasswordController;'."\n";
-        $imports .= 'use App\\Http\\Controllers\\Auth\\PasswordResetLinkController;'."\n";
-        $imports .= 'use App\\Http\\Controllers\\Settings\\PasswordController;'."\n";
-        $imports .= 'use App\\Http\\Controllers\\Settings\\ProfileController;'."\n";
-        $imports .= 'use App\\Http\\Middleware\\HandleDcodeInertiaRequests;'."\n";
+        $imports = '';
 
-        if (! str_contains($contents, 'use Illuminate\\Support\\Facades\\Route;')) {
-            $imports .= 'use Illuminate\\Support\\Facades\\Route;'."\n";
+        foreach ([
+            'App\\Http\\Controllers\\DashboardController',
+            'App\\Http\\Controllers\\Auth\\AuthenticatedSessionController',
+            'App\\Http\\Controllers\\Auth\\NewPasswordController',
+            'App\\Http\\Controllers\\Auth\\PasswordResetLinkController',
+            'App\\Http\\Controllers\\Auth\\ConfirmablePasswordController',
+            'App\\Http\\Controllers\\Auth\\EmailVerificationNotificationController',
+            'App\\Http\\Controllers\\Auth\\EmailVerificationPromptController',
+            'App\\Http\\Controllers\\Auth\\VerifyEmailController',
+            'App\\Http\\Controllers\\Settings\\PasswordController',
+            'App\\Http\\Controllers\\Settings\\ProfileController',
+            'App\\Http\\Middleware\\HandleDcodeInertiaRequests',
+            'Illuminate\\Support\\Facades\\Route',
+            'Inertia\\Inertia',
+        ] as $import) {
+            if (! str_contains($contents, "use {$import};")) {
+                $imports .= "use {$import};\n";
+            }
+        }
+
+        if ($imports === '') {
+            return $contents;
         }
 
         return preg_replace('/(<\?php\s*)/', "$1\n{$imports}", $contents, 1) ?? $contents;
@@ -383,6 +398,7 @@ class InstallDcodeStarterKitFrontend
 Route::middleware([HandleDcodeInertiaRequests::class, 'guest'])->group(function (): void {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    Route::get('register', fn () => Inertia::render('Auth/Register'))->name('register');
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
@@ -390,8 +406,13 @@ Route::middleware([HandleDcodeInertiaRequests::class, 'guest'])->group(function 
 });
 
 Route::middleware([HandleDcodeInertiaRequests::class, 'auth'])->group(function (): void {
-    Route::get('dashboard', DashboardController::class)->name('dashboard');
+    Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    Route::get('verify-email', EmailVerificationPromptController::class)->name('verification.notice');
+    Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])->middleware('throttle:6,1')->name('verification.send');
+    Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])->name('password.confirm.show');
+    Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
     Route::get('account/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('account/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('account/password', [PasswordController::class, 'edit'])->name('password.edit');
@@ -404,6 +425,15 @@ PHP;
     {
         $updated = str_replace(
             [
+                "Route::get('dashboard', DashboardController::class)->name('dcode.dashboard');",
+                "Route::get('dashboard', DashboardController::class)->name('dashboard');",
+            ],
+            "Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');",
+            $contents,
+        );
+
+        $updated = str_replace(
+            [
                 ")->name('dcode.login');",
                 ")->name('dcode.login.store');",
                 ")->name('dcode.password.request');",
@@ -411,6 +441,7 @@ PHP;
                 ")->name('dcode.password.reset');",
                 ")->name('dcode.password.update');",
                 ")->name('dcode.dashboard');",
+                ")->name('dashboard');",
                 ")->name('dcode.logout');",
                 ")->name('dcode.profile.edit');",
                 ")->name('dcode.profile.update');",
@@ -424,15 +455,39 @@ PHP;
                 ")->name('password.email');",
                 ")->name('password.reset');",
                 ")->name('password.store');",
-                ")->name('dashboard');",
+                ")->name('admin.dashboard');",
                 ")->name('logout');",
                 ")->name('profile.edit');",
                 ")->name('profile.update');",
                 ")->name('password.edit');",
                 ")->name('password.update');",
             ],
-            $contents,
+            $updated,
         );
+
+        if (! str_contains($updated, "Route::get('register'")) {
+            $updated = str_replace(
+                "    Route::post('login', [AuthenticatedSessionController::class, 'store']);\n",
+                "    Route::post('login', [AuthenticatedSessionController::class, 'store']);\n    Route::get('register', fn () => Inertia::render('Auth/Register'))->name('register');\n",
+                $updated,
+            );
+        }
+
+        if (! str_contains($updated, "Route::get('confirm-password'")) {
+            $updated = str_replace(
+                "    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');\n",
+                "    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');\n    Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])->name('password.confirm.show');\n    Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);\n",
+                $updated,
+            );
+        }
+
+        if (! str_contains($updated, "Route::get('verify-email'")) {
+            $updated = str_replace(
+                "    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');\n",
+                "    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');\n    Route::get('verify-email', EmailVerificationPromptController::class)->name('verification.notice');\n    Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)->middleware(['signed', 'throttle:6,1'])->name('verification.verify');\n    Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])->middleware('throttle:6,1')->name('verification.send');\n",
+                $updated,
+            );
+        }
 
         return $updated;
     }

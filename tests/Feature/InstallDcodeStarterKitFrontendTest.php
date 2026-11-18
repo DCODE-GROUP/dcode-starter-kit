@@ -67,13 +67,16 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
     $routes = (string) file_get_contents($directory.'/routes/web.php');
     expect(substr_count($routes, '// Dcode Starter Kit frontend routes'))->toBe(1)
         ->and($routes)->toContain("Route::get('/', DashboardController::class);")
+        ->and($routes)->toContain("Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');")
+        ->and($routes)->toContain("Route::get('verify-email', EmailVerificationPromptController::class)->name('verification.notice');")
+        ->and($routes)->toContain("Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])")
         ->and($routes)->toContain('AuthenticatedSessionController::class')
         ->and($routes)->toContain('NewPasswordController::class')
         ->and($routes)->toContain('ProfileController::class')
         ->and($routes)->toContain("->name('login')")
         ->and($routes)->toContain("->name('password.request')")
         ->and($routes)->toContain("->name('password.store')")
-        ->and($routes)->toContain("->name('dashboard')")
+        ->and($routes)->toContain("->name('admin.dashboard')")
         ->and($routes)->toContain("->name('profile.edit')")
         ->and($routes)->toContain("->name('password.update')")
         ->not->toContain("->name('dcode.login')")
@@ -133,7 +136,7 @@ it('upgrades the generated dcode route names when rerun', function () {
             "->name('password.email')",
             "->name('password.reset')",
             "->name('password.store')",
-            "->name('dashboard')",
+            "->name('admin.dashboard')",
             "->name('logout')",
             "->name('profile.edit')",
             "->name('profile.update')",
@@ -161,7 +164,9 @@ it('upgrades the generated dcode route names when rerun', function () {
         ->and(file_get_contents($routePath))->not->toContain('dcode.')
         ->and(file_get_contents($routePath))->toContain("->name('login')")
         ->toContain("->name('password.store')")
-        ->toContain("->name('password.update')");
+        ->toContain("->name('password.update')")
+        ->toContain("Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');")
+        ->toContain("->name('admin.dashboard')");
 });
 
 it('requires a package manifest', function () {

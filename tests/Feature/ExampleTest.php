@@ -7,6 +7,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 use DcodeStarterKit\DcodeStarterKit\DcodeStarterKit;
@@ -55,6 +56,10 @@ it('registers the install artisan command', function () {
     $usersMigration = Mockery::mock(SetupDefaultUsersMigration::class);
     $usersMigration->allows('setup')->andReturn(true);
     app()->instance(SetupDefaultUsersMigration::class, $usersMigration);
+
+    $fortifySanctum = Mockery::mock(SetupFortifySanctum::class);
+    $fortifySanctum->allows('setup')->andReturn(true);
+    app()->instance(SetupFortifySanctum::class, $fortifySanctum);
 
     app()->instance(InstallDcodeStarterKitDependencies::class, new InstallDcodeStarterKitDependencies(
         function (array $arguments, string $workingDirectory, callable $output): bool {

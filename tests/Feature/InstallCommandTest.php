@@ -7,6 +7,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 
@@ -30,6 +31,10 @@ beforeEach(function () {
     $usersMigration = Mockery::mock(SetupDefaultUsersMigration::class);
     $usersMigration->allows('setup')->andReturn(true);
     app()->instance(SetupDefaultUsersMigration::class, $usersMigration);
+
+    $fortifySanctum = Mockery::mock(SetupFortifySanctum::class);
+    $fortifySanctum->allows('setup')->andReturn(true);
+    app()->instance(SetupFortifySanctum::class, $fortifySanctum);
 
     $activityLogMigrations = Mockery::mock(PublishActivityLogMigrations::class);
     $activityLogMigrations->allows('publish')->andReturn(true);

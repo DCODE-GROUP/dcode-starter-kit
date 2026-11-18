@@ -9,6 +9,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 use Illuminate\Console\Command;
@@ -27,6 +28,7 @@ class InstallCommand extends Command
         SetupDefaultUsersMigration $usersMigration,
         SetupSpatiePermission $permissionSetup,
         PublishActivityLogMigrations $activityLogMigrations,
+        SetupFortifySanctum $fortifySanctum,
     ): int {
         $failedStep = $installer->install(
             base_path(),
@@ -71,6 +73,19 @@ class InstallCommand extends Command
         $this->info('Activity log migrations published successfully.');
 
         $this->info('Dcode Starter Kit frontend installed successfully.');
+
+        if (! $fortifySanctum->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupFortifySanctum::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Fortify and Sanctum configured successfully.');
 
         if (! $macroServiceProvider->setup(
             base_path(),

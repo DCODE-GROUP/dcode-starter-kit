@@ -18,7 +18,12 @@ class ProfileController
 
     public function update(Request $request): RedirectResponse
     {
-        $data = $request->validate(['name' => ['required', 'string', 'max:255'], 'email' => ['required', 'email', 'max:255']]);
+        $data = $request->validate([
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+        ]);
         $request->user()->update($data);
 
         return back()->with('status', __('dcode-starter-kit::messages.account.saved'));
