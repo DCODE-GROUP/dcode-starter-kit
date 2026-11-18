@@ -36,6 +36,8 @@ It updates the fresh application's default users migration to add `first_name`, 
 
 The installer publishes the `dcodegroup/activity-log` package migration using its `activity-log-migrations` publish tag, then normalizes it to `0001_01_01_000003_create_activity_logs_tables.php`. It also publishes `config/activity-log.php` and integrates the host `User` model with `HasActivityUser` and `ActivityLoggable`, including generic user-name and email accessors. Existing activity-log migrations and configuration are preserved and are not duplicated or overwritten on reruns.
 
+The installer also integrates the reusable Laravel Attachments backend. It publishes `config/attachments.php`, publishes and configures Spatie Media Library to use the attachment package's media model and path generator, publishes and normalizes the media, media-category, and annotation migrations to `0001_01_01_000004` through `0001_01_01_000006`, and registers the authenticated attachment routes. It creates a host `AttachmentServiceProvider`, a generic `MediaPolicy`, and adds `HasMediaUser` plus `getMediaUserName()` to the host `User` model. The policy permits authenticated viewing, creation, and updates; destructive actions require an existing host `isAdmin()` method. Review that policy and customize it for the application's authorization model. The attachment backend requires the PHP `imagick` extension. The installer does not provide product-specific attachment screens, categories, annotation workflows, storage credentials, or tenancy rules.
+
 The supported starting point is a Laravel 12 or 13 application with a `package.json` and pnpm available. The installer configures `packageManager` and the pnpm engine, allows the required DSG Vue build script through `pnpm-workspace.yaml`'s `allowBuilds` setting, adds frontend dependencies including the private `@dcodegroup-au/dsg-vue` component library, and configures both `pnpm run dev` and `pnpm run build` to use the generated Vite config. It then runs `pnpm install` followed by `pnpm run build`. An existing yarn or npm `packageManager` declaration is reported as a conflict rather than silently changed. Configure the DCode npm registry and credentials in the host project before installing; credentials are never copied by this package.
 
 The frontend files are namespaced with `dcode-starter-kit` and are not silently overwritten. If those files already exist, review or remove them before rerunning. Existing unrelated frontend files and Composer metadata are preserved. The command is safe to rerun after a successful install; the dependency managers handle already-installed packages.
@@ -56,6 +58,8 @@ The command adds these regular Composer dependencies:
 - `spatie/laravel-query-builder`
 - `tightenco/ziggy`
 - `inertiajs/inertia-laravel`
+
+The attachment backend also requires its own transitive private/public Composer dependencies and the PHP `imagick` extension. Configure the required Composer repositories and credentials in the host project before running the installer; this package never copies registry credentials.
 
 It adds this development dependency:
 

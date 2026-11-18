@@ -7,7 +7,9 @@ namespace DcodeStarterKit\DcodeStarterKit\Console\Commands;
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitDependencies;
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
+use DcodeStarterKit\DcodeStarterKit\Actions\PublishAttachmentMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
@@ -31,6 +33,8 @@ class InstallCommand extends Command
         PublishActivityLogMigrations $activityLogMigrations,
         SetupFortifySanctum $fortifySanctum,
         SetupActivityLog $activityLog,
+        PublishAttachmentMigrations $attachmentMigrations,
+        SetupAttachments $attachments,
     ): int {
         $failedStep = $installer->install(
             base_path(),
@@ -86,6 +90,32 @@ class InstallCommand extends Command
         }
 
         $this->info('Activity log User integration configured successfully.');
+
+        if (! $attachmentMigrations->publish(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.PublishAttachmentMigrations::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Attachment migrations published successfully.');
+
+        if (! $attachments->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupAttachments::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Laravel Attachments configured successfully.');
 
         $this->info('Dcode Starter Kit frontend installed successfully.');
 

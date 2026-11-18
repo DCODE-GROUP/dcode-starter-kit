@@ -5,7 +5,9 @@ declare(strict_types=1);
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitDependencies;
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
+use DcodeStarterKit\DcodeStarterKit\Actions\PublishAttachmentMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
@@ -40,6 +42,14 @@ beforeEach(function () {
     $activityLog = Mockery::mock(SetupActivityLog::class);
     $activityLog->allows('setup')->andReturn(true);
     app()->instance(SetupActivityLog::class, $activityLog);
+
+    $attachmentMigrations = Mockery::mock(PublishAttachmentMigrations::class);
+    $attachmentMigrations->allows('publish')->andReturn(true);
+    app()->instance(PublishAttachmentMigrations::class, $attachmentMigrations);
+
+    $attachments = Mockery::mock(SetupAttachments::class);
+    $attachments->allows('setup')->andReturn(true);
+    app()->instance(SetupAttachments::class, $attachments);
 
     $activityLogMigrations = Mockery::mock(PublishActivityLogMigrations::class);
     $activityLogMigrations->allows('publish')->andReturn(true);

@@ -39,6 +39,8 @@ The command installs Composer dependencies including Laravel Fortify and Sanctum
 
 The frontend controllers and Inertia middleware are generated in the consuming application's `app/` directories. The installer creates host-owned authentication routes in `routes/auth.php`, requires them from `routes/web.php`, and injects the dashboard/account routes into `routes/web.php`, including the dashboard-backed `/` route; the package does not load them as package routes.
 
+The installer also configures the reusable Laravel Attachments backend. It publishes `config/attachments.php` and `config/media-library.php`, configures the attachment media model and path generator, publishes the three attachment migrations, registers authenticated attachment routes, creates a host attachment service provider and generic media policy, and adds `HasMediaUser` to `App\Models\User`. The attachment backend requires PHP `imagick`. Review the generated `app/Policies/MediaPolicy.php` and storage settings before production use; the package does not provide product-specific attachment UI, storage credentials, or tenancy behavior.
+
 ## Rules, References, and Templates
 
 Read before executing:
@@ -54,4 +56,5 @@ Read before executing:
 - do not run the installer before the consuming application's Composer repositories and credentials are configured
 - do not promise package-specific configuration or Git hook setup; those steps are not implemented yet
 - do not assume the frontend can replace an existing authentication or frontend scaffold; resolve reported conflicts first
+- do not assume the generated attachment policy matches the application's authorization model; review it before production use
 - do not copy private Dcode registry credentials into the application
