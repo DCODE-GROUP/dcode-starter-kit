@@ -35,7 +35,9 @@ Use this skill when a Laravel application needs to integrate the Dcode Starter K
 - review the application's `composer.json` after installation; all listed runtime and development dependencies belong to the application and can be managed independently
 - rerun `php artisan dcode:install` after correcting a failed Composer step
 
-The command currently installs dependencies only. It does not publish configuration or migrations, run migrations, configure Git hooks, or perform other package-specific setup.
+The command installs Composer dependencies, configures permission teams, configures Composer hooks, and installs the generic Vue/Inertia frontend foundation. The frontend expects pnpm and a `package.json`, configures the pnpm metadata, refuses to overwrite its own generated files, and runs `pnpm install` followed by `pnpm run build`. It does not run database migrations or configure application tenancy.
+
+The frontend controller and Inertia middleware are generated in the consuming application's `app/` directories. The installer injects the frontend routes into the host `routes/web.php`, including the dashboard-backed `/` route; the package does not load them as package routes.
 
 ## Rules, References, and Templates
 
@@ -51,3 +53,5 @@ Read before executing:
 
 - do not run the installer before the consuming application's Composer repositories and credentials are configured
 - do not promise package-specific configuration or Git hook setup; those steps are not implemented yet
+- do not assume the frontend can replace an existing authentication or frontend scaffold; resolve reported conflicts first
+- do not copy private Dcode registry credentials into the application

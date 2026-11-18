@@ -25,6 +25,7 @@ class InstallDcodeStarterKitDependencies
         'spatie/laravel-permission',
         'spatie/laravel-query-builder',
         'tightenco/ziggy',
+        'inertiajs/inertia-laravel',
     ];
 
     private const array DEVELOPMENT_DEPENDENCIES = [

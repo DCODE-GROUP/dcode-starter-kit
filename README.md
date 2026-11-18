@@ -20,11 +20,19 @@ You can install the package via Composer:
 composer require --dev dcodegroup/dcode-starter-kit
 ```
 
-Run the installer from the consuming Laravel application:
+Run the installer from a fresh Laravel application:
 
 ```bash
 php artisan dcode:install
 ```
+
+The installer adds a generic Vue 3 + TypeScript + Inertia + Tailwind frontend with a responsive application shell, login/password-reset screens, dashboard, profile, and password pages. It also installs the minimum Inertia integration and keeps the frontend independent of the reference application's private Dcode UI packages.
+
+The generated authentication, dashboard, profile, and password controllers plus `HandleDcodeInertiaRequests` middleware are copied into the host application so they can be customized and versioned with that application. The installer injects the frontend route definitions directly into `routes/web.php`, replaces Laravel's default `/` welcome route with the dashboard action, and does not load application routes from the package.
+
+The supported starting point is a Laravel 12 or 13 application with a `package.json` and pnpm available. The installer configures `packageManager` and the pnpm engine, adds frontend dependencies, then runs `pnpm install` followed by `pnpm run build`. An existing yarn or npm `packageManager` declaration is reported as a conflict rather than silently changed. Private Dcode registries are not required for the bundled screens; if you extend them with internal Dcode packages, configure that registry and credentials in the application before installing.
+
+The frontend files are namespaced with `dcode-starter-kit` and are not silently overwritten. If those files already exist, review or remove them before rerunning. Existing unrelated frontend files and Composer metadata are preserved. The command is safe to rerun after a successful install; the dependency managers handle already-installed packages.
 
 The command adds these regular Composer dependencies:
 
@@ -39,6 +47,7 @@ The command adds these regular Composer dependencies:
 - `spatie/laravel-permission`
 - `spatie/laravel-query-builder`
 - `tightenco/ziggy`
+- `inertiajs/inertia-laravel`
 
 It adds this development dependency:
 
@@ -55,6 +64,8 @@ Review the published configuration and migrations, then run `php artisan migrate
 If permission migrations have already run, review the schema and use Spatie's `php artisan permission:setup-teams` upgrade path when appropriate, then run `php artisan migrate`; the installer does not run it automatically.
 
 The installer also adds the Composer `extra.hooks` configuration used by the DCode project starter to the application's `composer.json`, while preserving unrelated Composer metadata. Composer output is streamed to the terminal. If dependency installation or hook configuration fails, the command stops and returns a failure status; a development dependency failure means the runtime dependencies may already have been installed. Fix the application or Composer configuration and run `php artisan dcode:install` again. Composer safely handles already-installed entries when rerunning the command.
+
+After installation, review the generated `vite.config.dcode.ts`, run `pnpm run dcode:typecheck`, and ensure the host application's `User` model supports the normal Laravel `name`, `email`, and `password` attributes. Run the application's migrations before testing password resets. The package does not create users, seed roles, or modify the host application's bootstrap middleware; the bundled routes use their own Inertia middleware and `dcode.*` route names so existing application routes remain available.
 
 ## Usage
 

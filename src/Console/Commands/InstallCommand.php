@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DcodeStarterKit\DcodeStarterKit\Console\Commands;
 
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitDependencies;
+use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 use Illuminate\Console\Command;
@@ -17,6 +18,7 @@ class InstallCommand extends Command
 
     public function handle(
         InstallDcodeStarterKitDependencies $installer,
+        InstallDcodeStarterKitFrontend $frontend,
         SetupComposerHooks $composerHooks,
         SetupSpatiePermission $permissionSetup,
     ): int {
@@ -38,8 +40,17 @@ class InstallCommand extends Command
             return self::FAILURE;
         }
 
+        if (! $frontend->install(base_path(), function (string $output): void {
+            $this->output->write($output);
+        })) {
+            $this->error('Dcode Starter Kit installation failed during '.InstallDcodeStarterKitFrontend::STEP.'.');
+
+            return self::FAILURE;
+        }
+
         $this->newLine();
         $this->info('Dcode Starter Kit dependencies installed successfully.');
+        $this->info('Dcode Starter Kit frontend installed successfully.');
 
         if (! $composerHooks->setup(
             base_path(),

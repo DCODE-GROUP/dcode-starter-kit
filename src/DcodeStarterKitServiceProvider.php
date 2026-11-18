@@ -24,8 +24,6 @@ class DcodeStarterKitServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->loadRoutesFrom(__DIR__.'/../routes/dcode-starter-kit.php');
-
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'dcode-starter-kit');
 
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'dcode-starter-kit');

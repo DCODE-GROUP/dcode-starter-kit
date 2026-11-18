@@ -1,0 +1,95 @@
+<?php
+
+declare(strict_types=1);
+
+use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
+
+function frontendFixture(array $package = ['name' => 'fixture/app']): string
+{
+    $directory = sys_get_temp_dir().'/dcode-frontend-'.bin2hex(random_bytes(5));
+    mkdir($directory, 0777, true);
+    mkdir($directory.'/routes', 0777, true);
+    file_put_contents($directory.'/routes/web.php', "<?php\n\nuse Illuminate\\Support\\Facades\\Route;\n\nRoute::get('/', function () {\n    return view('welcome');\n});\n");
+    file_put_contents($directory.'/package.json', json_encode($package, JSON_PRETTY_PRINT)."\n");
+
+    return $directory;
+}
+
+it('sets up pnpm, installs dependencies, and builds the frontend', function () {
+    $directory = frontendFixture(['name' => 'fixture/app', 'packageManager' => 'pnpm@9.0.0', 'scripts' => ['build' => 'vite build']]);
+    $calls = [];
+    $action = new InstallDcodeStarterKitFrontend(function (array $arguments, string $workingDirectory, callable $output) use (&$calls): bool {
+        $calls[] = [$arguments, $workingDirectory];
+
+        return true;
+    });
+
+    expect($action->install($directory, fn () => null))->toBeTrue()
+        ->and($calls)->toHaveCount(2)
+        ->and($calls[0][0])->toBe(['pnpm', 'install'])
+        ->and($calls[1][0])->toBe(['pnpm', 'run', 'build'])
+        ->and(is_file($directory.'/resources/js/dcode-starter-kit.ts'))->toBeTrue()
+        ->and(is_file($directory.'/vite.config.dcode.ts'))->toBeTrue();
+
+    $package = json_decode((string) file_get_contents($directory.'/package.json'), true);
+    expect($package['devDependencies']['vue'])->toBe('^3.5')
+        ->and($package['scripts']['build'])->toBe('vite build --config vite.config.dcode.ts')
+        ->and($package['scripts']['dcode:build'])->toBe('pnpm run build')
+        ->and($package['packageManager'])->toBe('pnpm@9.0.0')
+        ->and($package['engines']['pnpm'])->toBe('>=9.0.0');
+
+    $routes = (string) file_get_contents($directory.'/routes/web.php');
+    expect(substr_count($routes, '// Dcode Starter Kit frontend routes'))->toBe(1)
+        ->and($routes)->toContain("Route::get('/', DashboardController::class);")
+        ->and($routes)->toContain('AuthenticatedSessionController::class')
+        ->and($routes)->toContain('NewPasswordController::class')
+        ->and($routes)->toContain('ProfileController::class')
+        ->not->toContain("require __DIR__.'/dcode-starter-kit.php';");
+});
+
+it('rejects a conflicting package manager', function () {
+    $directory = frontendFixture(['name' => 'fixture/app', 'packageManager' => 'yarn@1.22.0']);
+    $messages = [];
+
+    expect((new InstallDcodeStarterKitFrontend(fn () => true))->install($directory, function (string $message) use (&$messages): void {
+        $messages[] = $message;
+    }))->toBeFalse()
+        ->and(implode('', $messages))->toContain('requires pnpm');
+});
+
+it('refuses to overwrite generated frontend files', function () {
+    $directory = frontendFixture();
+    mkdir($directory.'/resources/js', 0777, true);
+    file_put_contents($directory.'/resources/js/dcode-starter-kit.ts', 'custom');
+    $messages = [];
+
+    expect((new InstallDcodeStarterKitFrontend(fn () => true))->install($directory, function (string $message) use (&$messages): void {
+        $messages[] = $message;
+    }))->toBeFalse()
+        ->and(implode('', $messages))->toContain('Frontend files already exist');
+});
+
+it('can be rerun without treating its own generated files as conflicts', function () {
+    $directory = frontendFixture();
+    $calls = 0;
+    $action = new InstallDcodeStarterKitFrontend(function () use (&$calls): bool {
+        $calls++;
+
+        return true;
+    });
+
+    expect($action->install($directory, fn () => null))->toBeTrue()
+        ->and($action->install($directory, fn () => null))->toBeTrue()
+        ->and($calls)->toBe(4);
+});
+
+it('requires a package manifest', function () {
+    $directory = sys_get_temp_dir().'/dcode-frontend-'.bin2hex(random_bytes(5));
+    mkdir($directory, 0777, true);
+    $messages = [];
+
+    expect((new InstallDcodeStarterKitFrontend(fn () => true))->install($directory, function (string $message) use (&$messages): void {
+        $messages[] = $message;
+    }))->toBeFalse()
+        ->and(implode('', $messages))->toContain('No package.json was found');
+});

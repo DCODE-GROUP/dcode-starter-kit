@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitDependencies;
+use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 use DcodeStarterKit\DcodeStarterKit\DcodeStarterKit;
@@ -35,6 +36,10 @@ it('registers the install artisan command', function () {
     $permissionSetup = Mockery::mock(SetupSpatiePermission::class);
     $permissionSetup->allows('setup')->andReturn(true);
     app()->instance(SetupSpatiePermission::class, $permissionSetup);
+
+    $frontend = Mockery::mock(InstallDcodeStarterKitFrontend::class);
+    $frontend->allows('install')->andReturn(true);
+    app()->instance(InstallDcodeStarterKitFrontend::class, $frontend);
 
     app()->instance(InstallDcodeStarterKitDependencies::class, new InstallDcodeStarterKitDependencies(
         function (array $arguments, string $workingDirectory, callable $output): bool {
