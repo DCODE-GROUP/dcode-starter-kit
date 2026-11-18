@@ -29,20 +29,32 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->and($calls[0][0])->toBe(['pnpm', 'install'])
         ->and($calls[1][0])->toBe(['pnpm', 'run', 'build'])
         ->and(is_file($directory.'/resources/js/dcode-starter-kit.ts'))->toBeTrue()
+        ->and(is_file($directory.'/resources/js/components/Navigation/AppSidebar.vue'))->toBeTrue()
         ->and(is_file($directory.'/vite.config.dcode.ts'))->toBeTrue();
 
     $viteConfig = (string) file_get_contents($directory.'/vite.config.dcode.ts');
     expect($viteConfig)->toContain('import.meta.dirname')
+        ->toContain('vue/dist/vue.esm-bundler.js')
         ->and($viteConfig)->toContain('resources/js/types/index.ts')
-        ->toContain('node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.esm.js');
+        ->toContain('node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.esm.js')
+        ->toContain('vite-svg-loader')
+        ->toContain('svgLoader()');
     expect(file_get_contents($directory.'/resources/css/dcode-starter-kit.css'))
         ->toContain('../../node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.css');
     expect(file_get_contents($directory.'/resources/js/dcode-starter-kit.ts'))
         ->not->toContain('import { trans }');
+    expect(file_get_contents($directory.'/resources/js/layouts/App.vue'))
+        ->toContain('AppSidebar');
+    expect(file_get_contents($directory.'/resources/js/components/Navigation/AppSidebar.vue'))
+        ->toContain('sidebar__nav');
+    expect(file_get_contents($directory.'/resources/js/pages/Auth/Login.vue'))
+        ->toContain('auth__content-actions')
+        ->toContain('DsgCheckbox');
 
     $package = json_decode((string) file_get_contents($directory.'/package.json'), true);
     expect($package['devDependencies']['vue'])->toBe('^3.5')
         ->and($package['devDependencies']['@dcodegroup-au/dsg-vue'])->toBe('^1.0.15-next')
+        ->and($package['devDependencies']['vite-svg-loader'])->toBe('^5.1.1')
         ->and($package['scripts']['dev'])->toBe('vite --config vite.config.dcode.ts')
         ->and($package['scripts']['build'])->toBe('vite build --config vite.config.dcode.ts')
         ->and($package['scripts']['dcode:build'])->toBe('pnpm run build')

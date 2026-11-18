@@ -12,6 +12,7 @@ return [
             'forgot_password' => 'Forgot your password?',
             'reset_password' => 'Reset password',
         ],
+        'forgot_help' => 'Enter your email address and we will send you a password reset link.',
         'fields' => [
             'email' => 'Email address',
             'password' => 'Password',
@@ -53,8 +54,10 @@ return [
         'update' => 'Save changes',
     ],
     'navigation' => [
+        'brand' => 'Dcode',
         'dashboard' => 'Dashboard',
         'account' => 'Account',
         'logout' => 'Log out',
+        'toggle' => 'Toggle navigation',
     ],
 ];

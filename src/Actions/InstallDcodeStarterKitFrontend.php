@@ -32,6 +32,7 @@ class InstallDcodeStarterKitFrontend
         'vue' => '^3.5',
         'vue-tsc' => '^3.0',
         'vite' => '^7.0',
+        'vite-svg-loader' => '^5.1.1',
         'ziggy-js' => '^2.0',
     ];
 
@@ -179,6 +180,19 @@ class InstallDcodeStarterKitFrontend
                 && str_contains($contents, 'dsg-vue'),
             'resources/js/pages/Auth/ResetPassword.vue' => str_contains($contents, '@inertiajs/vue3')
                 && str_contains($contents, 'AuthLayout'),
+            'resources/js/pages/Auth/Login.vue',
+            'resources/js/pages/Auth/ForgotPassword.vue' => str_contains($contents, '@inertiajs/vue3')
+                && str_contains($contents, 'AuthLayout')
+                && str_contains($contents, 'dcode.'),
+            'resources/js/pages/Account/Profile.vue',
+            'resources/js/pages/Account/Password.vue',
+            'resources/js/pages/Dashboard.vue' => str_contains($contents, '@inertiajs/vue3')
+                && str_contains($contents, 'AppLayout')
+                && str_contains($contents, 'dcode.'),
+            'resources/js/layouts/App.vue' => str_contains($contents, 'AppSidebar')
+                || str_contains($contents, 'dcode.dashboard'),
+            'resources/js/layouts/Auth.vue' => str_contains($contents, 'auth__container')
+                && str_contains($contents, '@inertiajs/vue3'),
             'resources/js/dcode-starter-kit.ts' => str_contains($contents, 'createInertiaApp')
                 && str_contains($contents, 'dcode-starter-kit.css'),
             default => false,

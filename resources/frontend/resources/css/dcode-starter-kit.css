@@ -4,6 +4,79 @@
 
 @theme {
   --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+
+  /* DSG shell tokens used by the reference navigation and action states. */
+  --color-brand-25: #e6f6fc;
+  --color-brand-50: #ccecf9;
+  --color-brand-100: #b3e3f5;
+  --color-brand-200: #80d0ef;
+  --color-brand-300: #66c6ec;
+  --color-brand-400: #33b3e5;
+  --color-brand-500: #1aaae2;
+  --color-brand-600: #00a0df;
+  --color-brand-700: #0080b2;
+  --color-brand-800: #006086;
+  --color-brand-900: #004059;
+  --color-brand-950: #003043;
+  --color-brand-secondary-25: #fcfaff;
+  --color-brand-secondary-50: #f9f5ff;
+  --color-brand-secondary-100: #b3c8d6;
+  --color-brand-secondary-200: #99b6c8;
+  --color-brand-secondary-300: #6691ad;
+  --color-brand-secondary-400: #336d91;
+  --color-brand-secondary-500: #1a5a84;
+  --color-brand-secondary-600: #004876;
+  --color-brand-secondary-700: #003a5e;
+  --color-brand-secondary-800: #003253;
+  --color-brand-secondary-900: #002b47;
+  --color-brand-secondary-950: #00243b;
 }
 
 body { min-width: 320px; }
+
+/* Shared application shell conventions used by the Dcode Vue applications. */
+.auth__wrapper { display: flex; flex-direction: column; max-width: 28rem; min-width: min(24rem, calc(100vw - 2rem)); }
+.auth__header { display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.auth__content { background: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 10%); border-radius: .375rem; padding: 1.5rem; }
+.auth__content-pre { display: flex; flex-direction: column; gap: .5rem; margin-bottom: 1rem; }
+.auth__content-body { padding: .5rem 0; }
+.auth__content-form { display: flex; flex-direction: column; gap: 1rem; }
+.auth__content-form-row { display: flex; flex-direction: column; gap: .5rem; }
+.auth__content-form-row .dsg-input { width: 100%; }
+.auth__content-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; }
+.auth-content-actions-left, .auth-content-actions-right { display: flex; align-items: center; }
+.dcode-logo { display: inline-flex; align-items: center; justify-content: center; width: 8rem; height: 5rem; color: var(--color-brand-700, #0080b2); font-size: 1.25rem; font-weight: 700; letter-spacing: -.025em; }
+
+.sidebar { @apply sticky top-0 z-10 flex h-screen overflow-visible; }
+.sidebar__nav-rail { @apply relative shrink-0; }
+.sidebar__nav { @apply flex h-full shrink-0 flex-col justify-between overflow-visible bg-brand-950 pt-4 transition-[width] duration-200 ease-in-out; }
+.sidebar__nav--open { @apply w-70; }
+.sidebar__nav--closed { @apply w-20; }
+.sidebar__nav-top { @apply flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto; }
+.sidebar__logo-wrapper { @apply px-6; }
+.sidebar__logo-link { @apply block overflow-hidden no-underline; }
+.sidebar__logo { @apply block whitespace-nowrap text-xl font-bold tracking-tight text-white; }
+.sidebar__nav-list { @apply flex min-w-0 flex-col gap-2 overflow-y-auto px-4 pb-4; }
+.sidebar__nav-list-item { @apply min-w-0; }
+.sidebar__nav-list-link, .sidebar__account-link { @apply flex w-full min-w-0 items-center gap-2 rounded-md border-0 bg-transparent p-2 text-left text-sm text-white no-underline transition-[background-color,gap] duration-200 ease-in-out; }
+.sidebar__nav-list-link:hover, .sidebar__account-link:hover { @apply bg-brand-800; }
+.sidebar__nav-list-link--active { @apply bg-brand-600 text-white; }
+.sidebar__nav-list-link-icon { @apply shrink-0 text-white; }
+.sidebar__nav-list-link-label { @apply min-w-0 max-w-full overflow-hidden whitespace-nowrap text-base font-medium text-white transition-[max-width,width] duration-200 ease-in-out; }
+.sidebar__nav--closed .sidebar__nav-list-link, .sidebar__nav--closed .sidebar__account-link { @apply justify-center gap-0; }
+.sidebar__nav--closed .sidebar__nav-list-link-label { @apply max-w-0 w-0; }
+.sidebar__nav-bottom { @apply flex min-w-0 flex-col gap-2 overflow-visible px-4 pb-4; }
+.sidebar__divider { @apply border-brand-secondary-600; }
+.sidebar__collapse-button { @apply absolute right-0 top-0 z-30 hidden rounded-bl-lg rounded-tl-lg bg-brand-600 p-2 group-hover/sidebar:block; }
+.sidebar__collapse-button:hover { @apply bg-brand-700; }
+.sidebar__collapse-icon { @apply h-5 w-5 text-white transition-transform duration-300; display: block; color: #fff; }
+.sidebar__collapse-icon svg { display: block; width: 100%; height: 100%; }
+.sidebar__collapse-icon--closed { @apply rotate-180; }
+
+@media (max-width: 640px) {
+  .sidebar__nav--open { @apply w-20; }
+  .sidebar__nav--open .sidebar__nav-list-link, .sidebar__nav--open .sidebar__account-link { @apply justify-center gap-0; }
+  .sidebar__nav--open .sidebar__nav-list-link-label { @apply max-w-0 w-0; }
+  .auth__content-actions { align-items: flex-start; flex-direction: column-reverse; }
+  .auth-content-actions-right, .auth-content-actions-right .dsg-button { width: 100%; }
+}

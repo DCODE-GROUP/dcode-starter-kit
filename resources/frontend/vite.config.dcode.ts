@@ -2,12 +2,14 @@ import { defineConfig } from "vite";
 import laravel from "laravel-vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
+import svgLoader from "vite-svg-loader";
 import { resolve } from "node:path";
 
 export default defineConfig({
-  plugins: [laravel({ input: ["resources/css/dcode-starter-kit.css", "resources/js/dcode-starter-kit.ts"] }), tailwindcss(), vue()],
+  plugins: [laravel({ input: ["resources/css/dcode-starter-kit.css", "resources/js/dcode-starter-kit.ts"] }), tailwindcss(), vue(), svgLoader()],
   resolve: {
     alias: {
+      vue: resolve(import.meta.dirname, "node_modules/vue/dist/vue.esm-bundler.js"),
       "@dsg": resolve(import.meta.dirname, "node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.esm.js"),
       "@components": resolve(import.meta.dirname, "resources/js/components"),
       "@composables": resolve(import.meta.dirname, "resources/js/composables"),

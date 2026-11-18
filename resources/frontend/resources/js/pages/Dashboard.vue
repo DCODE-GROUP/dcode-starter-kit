@@ -16,5 +16,4 @@ import type { DcodeUser } from "../types";
 const { trans: translate } = useLaravelLocale();
 const page = usePage<{ auth: { user: DcodeUser } }>();
 const user = page.props.auth.user;
-defineOptions({ layout: AppLayout });
 </script>

@@ -1,12 +1,19 @@
 <template>
   <AuthLayout :title="translate('auth.page_titles.login')">
-    <form class="auth__content-body flex flex-col gap-5" @submit.prevent="submit">
-      <DsgInput v-model="form.email" type="email" name="email" :label="translate('auth.fields.email')" :placeholder="translate('auth.placeholders.email')" :errors="form.errors.email" autocomplete="email" />
-      <DsgInput v-model="form.password" type="password" name="password" :label="translate('auth.fields.password')" :errors="form.errors.password" autocomplete="current-password" />
-      <DsgCheckbox v-model="form.remember" name="remember" :label="translate('auth.fields.remember_me')" />
-      <DsgButton type="submit" :label="translate('auth.buttons.login')" width="full" />
-      <DsgButton :uri="route('dcode.password.request')" :label="translate('auth.buttons.forgot_password')" theme="brand-link" size="sm" />
-    </form>
+    <div class="auth__wrapper"><div class="auth__container">
+      <div class="auth__header"><div class="dcode-logo">{{ translate('navigation.brand') }}</div></div>
+      <div class="auth__content">
+        <div class="auth__content-pre"><h1 class="text-lg font-semibold">{{ translate('auth.page_titles.login') }}</h1></div>
+        <form class="auth__content-body" @submit.prevent="submit">
+          <div class="auth__content-form">
+            <div class="auth__content-form-row"><DsgInput v-model="form.email" type="email" name="email" :label="translate('auth.fields.email')" :placeholder="translate('auth.placeholders.email')" :errors="form.errors.email" autocomplete="email" /></div>
+            <div class="auth__content-form-row"><DsgInput v-model="form.password" type="password" name="password" :label="translate('auth.fields.password')" :errors="form.errors.password" autocomplete="current-password" /></div>
+            <div class="auth__content-form-row"><DsgCheckbox v-model="form.remember" name="remember" size="sm" :label="translate('auth.fields.remember_me')" /></div>
+          </div>
+        </form>
+        <div class="auth__content-actions gap-2"><div class="auth-content-actions-left"><DsgButton :uri="route('dcode.password.request')" :label="translate('auth.buttons.forgot_password')" theme="brand-link" size="sm" /></div><div class="auth-content-actions-right"><DsgButton type="submit" :label="translate('auth.buttons.login')" @button-clicked="submit" /></div></div>
+      </div>
+    </div></div>
   </AuthLayout>
 </template>
 
@@ -20,5 +27,4 @@ import { useLaravelLocale } from "@composables/useLaravelLocale";
 const { trans: translate } = useLaravelLocale();
 const form = useForm({ email: "", password: "", remember: false });
 const submit = (): void => form.post(route("dcode.login.store"));
-defineOptions({ layout: AuthLayout });
 </script>

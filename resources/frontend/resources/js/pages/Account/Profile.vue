@@ -22,5 +22,4 @@ const props = defineProps<{ user: DcodeUser }>();
 const { trans: translate } = useLaravelLocale();
 const form = useForm({ name: props.user.name ?? "", email: props.user.email });
 const submit = (): void => form.patch(route("dcode.profile.update"));
-defineOptions({ layout: AppLayout });
 </script>

@@ -21,5 +21,4 @@ import { useLaravelLocale } from "@composables/useLaravelLocale";
 const { trans: translate } = useLaravelLocale();
 const form = useForm({ current_password: "", password: "", password_confirmation: "" });
 const submit = (): void => form.put(route("dcode.password.store"));
-defineOptions({ layout: AppLayout });
 </script>
