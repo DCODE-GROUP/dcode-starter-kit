@@ -65,17 +65,21 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
     expect(file_get_contents($directory.'/pnpm-workspace.yaml'))->toContain("allowBuilds:\n  '@dcodegroup-au/dsg-vue': true");
 
     $routes = (string) file_get_contents($directory.'/routes/web.php');
+    $authRoutes = (string) file_get_contents($directory.'/routes/auth.php');
     expect(substr_count($routes, '// Dcode Starter Kit frontend routes'))->toBe(1)
         ->and($routes)->toContain("Route::get('/', DashboardController::class);")
         ->and($routes)->toContain("Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');")
-        ->and($routes)->toContain("Route::get('verify-email', EmailVerificationPromptController::class)->name('verification.notice');")
-        ->and($routes)->toContain("Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])")
-        ->and($routes)->toContain('AuthenticatedSessionController::class')
-        ->and($routes)->toContain('NewPasswordController::class')
         ->and($routes)->toContain('ProfileController::class')
-        ->and($routes)->toContain("->name('login')")
-        ->and($routes)->toContain("->name('password.request')")
-        ->and($routes)->toContain("->name('password.store')")
+        ->and($routes)->toContain("require __DIR__.'/auth.php';")
+        ->and($routes)->not->toContain('AuthenticatedSessionController::class')
+        ->and($authRoutes)->toContain('// Dcode Starter Kit authentication routes')
+        ->and($authRoutes)->toContain('AuthenticatedSessionController::class')
+        ->and($authRoutes)->toContain('NewPasswordController::class')
+        ->and($authRoutes)->toContain("Route::get('verify-email', EmailVerificationPromptController::class)->name('verification.notice');")
+        ->and($authRoutes)->toContain("Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])")
+        ->and($authRoutes)->toContain("->name('login')")
+        ->and($authRoutes)->toContain("->name('password.request')")
+        ->and($authRoutes)->toContain("->name('password.store')")
         ->and($routes)->toContain("->name('admin.dashboard')")
         ->and($routes)->toContain("->name('profile.edit')")
         ->and($routes)->toContain("->name('password.update')")
@@ -160,11 +164,35 @@ it('upgrades the generated dcode route names when rerun', function () {
     );
     file_put_contents($routePath, $routes);
 
+    $authPath = $directory.'/routes/auth.php';
+    $authRoutes = (string) file_get_contents($authPath);
+    $authRoutes = str_replace(
+        [
+            "->name('login')",
+            "->name('password.request')",
+            "->name('password.email')",
+            "->name('password.reset')",
+            "->name('password.store')",
+            "->name('logout')",
+        ],
+        [
+            "->name('dcode.login')",
+            "->name('dcode.password.request')",
+            "->name('dcode.password.email')",
+            "->name('dcode.password.reset')",
+            "->name('dcode.password.update')",
+            "->name('dcode.logout')",
+        ],
+        $authRoutes,
+    );
+    file_put_contents($authPath, $authRoutes);
+
     expect($action->install($directory, fn () => null))->toBeTrue()
         ->and(file_get_contents($routePath))->not->toContain('dcode.')
-        ->and(file_get_contents($routePath))->toContain("->name('login')")
+        ->and(file_get_contents($authPath))->not->toContain('dcode.')
+        ->and(file_get_contents($authPath))->toContain("->name('login')")
         ->toContain("->name('password.store')")
-        ->toContain("->name('password.update')")
+        ->and(file_get_contents($routePath))->toContain("->name('password.update')")
         ->toContain("Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');")
         ->toContain("->name('admin.dashboard')");
 });

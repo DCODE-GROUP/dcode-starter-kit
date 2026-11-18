@@ -21,6 +21,8 @@ class InstallDcodeStarterKitFrontend
 
     private const string ROUTE_MARKER = '// Dcode Starter Kit frontend routes';
 
+    private const string AUTH_ROUTE_MARKER = '// Dcode Starter Kit authentication routes';
+
     private const array FRONTEND_DEPENDENCIES = [
         '@inertiajs/vue3' => '^3.0',
         '@dcodegroup-au/dsg-vue' => '^1.0.15-next',
@@ -92,7 +94,10 @@ class InstallDcodeStarterKitFrontend
         foreach (['routes/web.php', 'routes/auth.php'] as $routeFile) {
             $contents = is_file($workingDirectory.'/'.$routeFile) ? file_get_contents($workingDirectory.'/'.$routeFile) : '';
 
-            if (is_string($contents) && ! str_contains($contents, self::ROUTE_MARKER) && preg_match("/['\"]login['\"]|auth\.php|Fortify::routes/s", $contents) === 1) {
+            if (is_string($contents)
+                && ! str_contains($contents, self::ROUTE_MARKER)
+                && ! str_contains($contents, self::AUTH_ROUTE_MARKER)
+                && preg_match("/['\"]login['\"]|auth\.php|Fortify::routes/s", $contents) === 1) {
                 $conflicts[] = $routeFile;
             }
         }
@@ -304,6 +309,7 @@ class InstallDcodeStarterKitFrontend
     private function registerHostRoutes(string $workingDirectory): void
     {
         $path = $workingDirectory.'/routes/web.php';
+        $authPath = $workingDirectory.'/routes/auth.php';
 
         if (! is_file($path)) {
             throw new RuntimeException('No routes/web.php was found. Add the Laravel web route file, then rerun dcode:install.');
@@ -316,11 +322,27 @@ class InstallDcodeStarterKitFrontend
         }
 
         if (str_contains($contents, self::ROUTE_MARKER)) {
-            $updated = $this->upgradeGeneratedRoutes($contents);
-            $updated = $this->addRouteImports($updated);
+            $existingAuthContents = is_file($authPath) ? file_get_contents($authPath) : null;
+            $authContents = $existingAuthContents;
+
+            if (! is_string($authContents) || ! str_contains($authContents, self::AUTH_ROUTE_MARKER)) {
+                $updated = $this->moveLegacyAuthenticationRoutes($contents);
+                $authContents = $this->authenticationRoutes();
+            } else {
+                $updated = $this->upgradeGeneratedRouteNames($contents);
+                $authContents = $this->upgradeGeneratedRouteNames($authContents);
+            }
+
+            $updated = $this->addWebRouteImports($updated);
+            $updated = $this->addAuthRouteRequire($updated);
+            $authContents = $this->addAuthRouteImports($authContents);
 
             if ($updated !== $contents) {
                 file_put_contents($path, $updated);
+            }
+
+            if ($authContents !== $existingAuthContents) {
+                file_put_contents($authPath, $authContents);
             }
 
             return;
@@ -331,9 +353,11 @@ class InstallDcodeStarterKitFrontend
         }
 
         $contents = $this->replaceDefaultRootRoute($contents);
-        $contents = $this->addRouteImports($contents);
+        $contents = $this->addWebRouteImports($contents);
+        $contents = $this->addAuthRouteRequire($contents);
 
         file_put_contents($path, rtrim($contents)."\n\n".$this->frontendRoutes()."\n");
+        file_put_contents($authPath, $this->addAuthRouteImports($this->authenticationRoutes()));
     }
 
     private function replaceDefaultRootRoute(string $contents): string
@@ -360,24 +384,16 @@ class InstallDcodeStarterKitFrontend
         return $contents;
     }
 
-    private function addRouteImports(string $contents): string
+    private function addWebRouteImports(string $contents): string
     {
         $imports = '';
 
         foreach ([
             'App\\Http\\Controllers\\DashboardController',
-            'App\\Http\\Controllers\\Auth\\AuthenticatedSessionController',
-            'App\\Http\\Controllers\\Auth\\NewPasswordController',
-            'App\\Http\\Controllers\\Auth\\PasswordResetLinkController',
-            'App\\Http\\Controllers\\Auth\\ConfirmablePasswordController',
-            'App\\Http\\Controllers\\Auth\\EmailVerificationNotificationController',
-            'App\\Http\\Controllers\\Auth\\EmailVerificationPromptController',
-            'App\\Http\\Controllers\\Auth\\VerifyEmailController',
             'App\\Http\\Controllers\\Settings\\PasswordController',
             'App\\Http\\Controllers\\Settings\\ProfileController',
             'App\\Http\\Middleware\\HandleDcodeInertiaRequests',
             'Illuminate\\Support\\Facades\\Route',
-            'Inertia\\Inertia',
         ] as $import) {
             if (! str_contains($contents, "use {$import};")) {
                 $imports .= "use {$import};\n";
@@ -391,9 +407,58 @@ class InstallDcodeStarterKitFrontend
         return preg_replace('/(<\?php\s*)/', "$1\n{$imports}", $contents, 1) ?? $contents;
     }
 
+    private function addAuthRouteImports(string $contents): string
+    {
+        $imports = '';
+
+        foreach ([
+            'App\\Http\\Controllers\\Auth\\AuthenticatedSessionController',
+            'App\\Http\\Controllers\\Auth\\NewPasswordController',
+            'App\\Http\\Controllers\\Auth\\PasswordResetLinkController',
+            'App\\Http\\Controllers\\Auth\\ConfirmablePasswordController',
+            'App\\Http\\Controllers\\Auth\\EmailVerificationNotificationController',
+            'App\\Http\\Controllers\\Auth\\EmailVerificationPromptController',
+            'App\\Http\\Controllers\\Auth\\VerifyEmailController',
+            'App\\Http\\Middleware\\HandleDcodeInertiaRequests',
+            'Illuminate\\Support\\Facades\\Route',
+            'Inertia\\Inertia',
+        ] as $import) {
+            if (! str_contains($contents, "use {$import};")) {
+                $imports .= "use {$import};\n";
+            }
+        }
+
+        return $imports === ''
+            ? $contents
+            : preg_replace('/(<\?php\s*)/', "$1\n{$imports}", $contents, 1) ?? $contents;
+    }
+
+    private function addAuthRouteRequire(string $contents): string
+    {
+        if (str_contains($contents, "require __DIR__.'/auth.php';")) {
+            return $contents;
+        }
+
+        return rtrim($contents)."\n\nrequire __DIR__.'/auth.php';\n";
+    }
+
     private function frontendRoutes(): string
     {
         return self::ROUTE_MARKER.<<<'PHP'
+
+Route::middleware([HandleDcodeInertiaRequests::class, 'auth'])->group(function (): void {
+    Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');
+    Route::get('account/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('account/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('account/password', [PasswordController::class, 'edit'])->name('password.edit');
+    Route::put('account/password', [PasswordController::class, 'update'])->name('password.update');
+});
+PHP;
+    }
+
+    private function authenticationRoutes(): string
+    {
+        return "<?php\n\n".self::AUTH_ROUTE_MARKER.<<<'PHP'
 
 Route::middleware([HandleDcodeInertiaRequests::class, 'guest'])->group(function (): void {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -406,31 +471,92 @@ Route::middleware([HandleDcodeInertiaRequests::class, 'guest'])->group(function 
 });
 
 Route::middleware([HandleDcodeInertiaRequests::class, 'auth'])->group(function (): void {
-    Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('verify-email', EmailVerificationPromptController::class)->name('verification.notice');
     Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])->middleware('throttle:6,1')->name('verification.send');
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])->name('password.confirm.show');
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
-    Route::get('account/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('account/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::get('account/password', [PasswordController::class, 'edit'])->name('password.edit');
-    Route::put('account/password', [PasswordController::class, 'update'])->name('password.update');
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
 PHP;
     }
 
-    private function upgradeGeneratedRoutes(string $contents): string
+    private function moveLegacyAuthenticationRoutes(string $contents): string
     {
-        $updated = str_replace(
+        $updated = $this->upgradeGeneratedRoutes($contents);
+        $markerPosition = strpos($updated, self::ROUTE_MARKER);
+
+        if ($markerPosition === false) {
+            return $updated;
+        }
+
+        $prefix = rtrim(substr($updated, 0, $markerPosition));
+
+        return $this->removeAuthenticationImports($prefix)."\n\n".$this->frontendRoutes();
+    }
+
+    private function removeAuthenticationImports(string $contents): string
+    {
+        foreach ([
+            'App\\Http\\Controllers\\Auth\\AuthenticatedSessionController',
+            'App\\Http\\Controllers\\Auth\\NewPasswordController',
+            'App\\Http\\Controllers\\Auth\\PasswordResetLinkController',
+            'App\\Http\\Controllers\\Auth\\ConfirmablePasswordController',
+            'App\\Http\\Controllers\\Auth\\EmailVerificationNotificationController',
+            'App\\Http\\Controllers\\Auth\\EmailVerificationPromptController',
+            'App\\Http\\Controllers\\Auth\\VerifyEmailController',
+            'Inertia\\Inertia',
+        ] as $import) {
+            $contents = str_replace("use {$import};\n", '', $contents);
+        }
+
+        return $contents;
+    }
+
+    private function upgradeGeneratedRouteNames(string $contents): string
+    {
+        return str_replace(
             [
                 "Route::get('dashboard', DashboardController::class)->name('dcode.dashboard');",
                 "Route::get('dashboard', DashboardController::class)->name('dashboard');",
+                ")->name('dcode.login');",
+                ")->name('dcode.login.store');",
+                ")->name('dcode.password.request');",
+                ")->name('dcode.password.email');",
+                ")->name('dcode.password.reset');",
+                ")->name('dcode.password.update');",
+                ")->name('dcode.dashboard');",
+                ")->name('dashboard');",
+                ")->name('dcode.logout');",
+                ")->name('dcode.profile.edit');",
+                ")->name('dcode.profile.update');",
+                ")->name('dcode.password.edit');",
+                ")->name('dcode.password.store');",
             ],
-            "Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');",
+            [
+                "Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');",
+                "Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');",
+                ")->name('login');",
+                ');',
+                ")->name('password.request');",
+                ")->name('password.email');",
+                ")->name('password.reset');",
+                ")->name('password.store');",
+                ")->name('admin.dashboard');",
+                ")->name('admin.dashboard');",
+                ")->name('logout');",
+                ")->name('profile.edit');",
+                ")->name('profile.update');",
+                ")->name('password.edit');",
+                ")->name('password.update');",
+            ],
             $contents,
         );
+    }
+
+    private function upgradeGeneratedRoutes(string $contents): string
+    {
+        $updated = $this->upgradeGeneratedRouteNames($contents);
 
         $updated = str_replace(
             [
