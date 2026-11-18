@@ -11,7 +11,7 @@
             <div class="auth__content-form-row"><DsgCheckbox v-model="form.remember" name="remember" size="sm" :label="translate('auth.fields.remember_me')" /></div>
           </div>
         </form>
-        <div class="auth__content-actions gap-2"><div class="auth-content-actions-left"><DsgButton :uri="route('dcode.password.request')" :label="translate('auth.buttons.forgot_password')" theme="brand-link" size="sm" /></div><div class="auth-content-actions-right"><DsgButton type="submit" :label="translate('auth.buttons.login')" @button-clicked="submit" /></div></div>
+        <div class="auth__content-actions gap-2"><div class="auth-content-actions-left"><DsgButton :uri="route('password.request')" :label="translate('auth.buttons.forgot_password')" theme="brand-link" size="sm" /></div><div class="auth-content-actions-right"><DsgButton type="submit" :label="translate('auth.buttons.login')" @button-clicked="submit" /></div></div>
       </div>
     </div></div>
   </AuthLayout>
@@ -26,5 +26,5 @@ import { useLaravelLocale } from "@composables/useLaravelLocale";
 
 const { trans: translate } = useLaravelLocale();
 const form = useForm({ email: "", password: "", remember: false });
-const submit = (): void => form.post(route("dcode.login.store"));
+const submit = (): void => form.post(route("login"));
 </script>

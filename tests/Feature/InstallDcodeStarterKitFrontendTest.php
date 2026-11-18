@@ -70,6 +70,13 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->and($routes)->toContain('AuthenticatedSessionController::class')
         ->and($routes)->toContain('NewPasswordController::class')
         ->and($routes)->toContain('ProfileController::class')
+        ->and($routes)->toContain("->name('login')")
+        ->and($routes)->toContain("->name('password.request')")
+        ->and($routes)->toContain("->name('password.store')")
+        ->and($routes)->toContain("->name('dashboard')")
+        ->and($routes)->toContain("->name('profile.edit')")
+        ->and($routes)->toContain("->name('password.update')")
+        ->not->toContain("->name('dcode.login')")
         ->not->toContain("require __DIR__.'/dcode-starter-kit.php';");
 });
 
@@ -109,6 +116,52 @@ it('can be rerun without treating its own generated files as conflicts', functio
         ->and($action->install($directory, fn () => null))->toBeTrue()
         ->and(file_get_contents($directory.'/pnpm-workspace.yaml'))->toContain("allowBuilds:\n  '@dcodegroup-au/dsg-vue': true")
         ->and($calls)->toBe(4);
+});
+
+it('upgrades the generated dcode route names when rerun', function () {
+    $directory = frontendFixture();
+    $action = new InstallDcodeStarterKitFrontend(fn () => true);
+
+    expect($action->install($directory, fn () => null))->toBeTrue();
+
+    $routePath = $directory.'/routes/web.php';
+    $routes = (string) file_get_contents($routePath);
+    $routes = str_replace(
+        [
+            "->name('login')",
+            "->name('password.request')",
+            "->name('password.email')",
+            "->name('password.reset')",
+            "->name('password.store')",
+            "->name('dashboard')",
+            "->name('logout')",
+            "->name('profile.edit')",
+            "->name('profile.update')",
+            "->name('password.edit')",
+            "->name('password.update')",
+        ],
+        [
+            "->name('dcode.login')",
+            "->name('dcode.password.request')",
+            "->name('dcode.password.email')",
+            "->name('dcode.password.reset')",
+            "->name('dcode.password.update')",
+            "->name('dcode.dashboard')",
+            "->name('dcode.logout')",
+            "->name('dcode.profile.edit')",
+            "->name('dcode.profile.update')",
+            "->name('dcode.password.edit')",
+            "->name('dcode.password.store')",
+        ],
+        $routes,
+    );
+    file_put_contents($routePath, $routes);
+
+    expect($action->install($directory, fn () => null))->toBeTrue()
+        ->and(file_get_contents($routePath))->not->toContain('dcode.')
+        ->and(file_get_contents($routePath))->toContain("->name('login')")
+        ->toContain("->name('password.store')")
+        ->toContain("->name('password.update')");
 });
 
 it('requires a package manifest', function () {

@@ -38,6 +38,6 @@ class NewPasswordController
             throw ValidationException::withMessages(['email' => __($status)]);
         }
 
-        return to_route('dcode.login')->with('status', __($status));
+        return to_route('login')->with('status', __($status));
     }
 }

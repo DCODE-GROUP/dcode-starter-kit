@@ -45,6 +45,8 @@ The command adds these regular Composer dependencies:
 - `bugsnag/bugsnag-laravel`
 - `dcodegroup/activity-log`
 - `dcodegroup/laravel-attachments-backend`
+- `laravel/fortify`
+- `laravel/sanctum`
 - `spatie/cpu-load-health-check`
 - `spatie/laravel-health`
 - `spatie/laravel-log-dumper`
@@ -59,7 +61,7 @@ It adds this development dependency:
 
 - `dcode-group/composer-git-hooks`
 
-These dependencies are added directly to the consuming application and can be managed independently after installation. Any private repositories and credentials must already be configured in that application and its environment.
+These dependencies are added directly to the consuming application and can be managed independently after installation. Fortify and Sanctum are installed as available authentication packages. The generated host-owned browser routes use the standard Fortify route names (`login`, `logout`, `password.*`, `dashboard`, and account settings names), so they can be used by Fortify-compatible navigation and controllers without the former `dcode.*` prefix. Add the desired Fortify features and Sanctum API/stateful middleware to the host application as needed. Any private repositories and credentials must already be configured in that application and its environment.
 
 After dependency installation succeeds, the installer interactively configures `spatie/laravel-permission`. It explains that teams scope roles and role assignments in a shared database, but do not implement application tenancy, then asks whether teams should be enabled. The default is the existing `permission.teams` value when available, otherwise `false`. If enabled, the tenant foreign key defaults to the existing configured value or `team_id`; names such as `tenant_id` and `organisation_id` are accepted.
 
@@ -71,7 +73,7 @@ If permission migrations have already run, review the schema and use Spatie's `p
 
 The installer also adds the Composer `extra.hooks` configuration used by the DCode project starter to the application's `composer.json`, while preserving unrelated Composer metadata. Composer output is streamed to the terminal. If dependency installation or hook configuration fails, the command stops and returns a failure status; a development dependency failure means the runtime dependencies may already have been installed. Fix the application or Composer configuration and run `php artisan dcode:install` again. Composer safely handles already-installed entries when rerunning the command.
 
-After installation, review the generated `vite.config.dcode.ts`, run `pnpm run dcode:typecheck`, and ensure the host application's `User` model supports the normal Laravel `name`, `email`, and `password` attributes. Run the application's migrations before testing password resets. The package does not create users, seed roles, or modify the host application's bootstrap middleware; the bundled routes use their own Inertia middleware and `dcode.*` route names so existing application routes remain available.
+After installation, review the generated `vite.config.dcode.ts`, run `pnpm run dcode:typecheck`, and ensure the host application's `User` model supports the normal Laravel `name`, `email`, and `password` attributes. Run the application's migrations before testing password resets. The package does not create users, seed roles, or modify the host application's bootstrap middleware; the bundled routes use their own Inertia middleware and standard Fortify-compatible route names.
 
 ## Usage
 

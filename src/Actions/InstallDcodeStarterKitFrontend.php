@@ -189,12 +189,18 @@ class InstallDcodeStarterKitFrontend
             'resources/js/pages/Dashboard.vue' => str_contains($contents, '@inertiajs/vue3')
                 && str_contains($contents, 'AppLayout')
                 && str_contains($contents, 'dcode.'),
+            'resources/js/components/Navigation/AppSidebar.vue' => str_contains($contents, 'sidebar__nav')
+                && str_contains($contents, 'dcode.'),
             'resources/js/layouts/App.vue' => str_contains($contents, 'AppSidebar')
                 || str_contains($contents, 'dcode.dashboard'),
             'resources/js/layouts/Auth.vue' => str_contains($contents, 'auth__container')
                 && str_contains($contents, '@inertiajs/vue3'),
             'resources/js/dcode-starter-kit.ts' => str_contains($contents, 'createInertiaApp')
                 && str_contains($contents, 'dcode-starter-kit.css'),
+            'app/Http/Controllers/DashboardController.php',
+            'app/Http/Controllers/Auth/AuthenticatedSessionController.php',
+            'app/Http/Controllers/Auth/NewPasswordController.php' => str_contains($contents, 'namespace App\\Http\\Controllers')
+                && str_contains($contents, 'dcode.'),
             default => false,
         };
     }
@@ -310,6 +316,12 @@ class InstallDcodeStarterKitFrontend
         }
 
         if (str_contains($contents, self::ROUTE_MARKER)) {
+            $updated = $this->upgradeGeneratedRoutes($contents);
+
+            if ($updated !== $contents) {
+                file_put_contents($path, $updated);
+            }
+
             return;
         }
 
@@ -369,23 +381,60 @@ class InstallDcodeStarterKitFrontend
         return self::ROUTE_MARKER.<<<'PHP'
 
 Route::middleware([HandleDcodeInertiaRequests::class, 'guest'])->group(function (): void {
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('dcode.login');
-    Route::post('login', [AuthenticatedSessionController::class, 'store'])->name('dcode.login.store');
-    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('dcode.password.request');
-    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])->name('dcode.password.email');
-    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('dcode.password.reset');
-    Route::post('reset-password', [NewPasswordController::class, 'store'])->name('dcode.password.update');
+    Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 });
 
 Route::middleware([HandleDcodeInertiaRequests::class, 'auth'])->group(function (): void {
-    Route::get('dashboard', DashboardController::class)->name('dcode.dashboard');
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('dcode.logout');
-    Route::get('account/profile', [ProfileController::class, 'edit'])->name('dcode.profile.edit');
-    Route::patch('account/profile', [ProfileController::class, 'update'])->name('dcode.profile.update');
-    Route::get('account/password', [PasswordController::class, 'edit'])->name('dcode.password.edit');
-    Route::put('account/password', [PasswordController::class, 'update'])->name('dcode.password.store');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    Route::get('account/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('account/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('account/password', [PasswordController::class, 'edit'])->name('password.edit');
+    Route::put('account/password', [PasswordController::class, 'update'])->name('password.update');
 });
 PHP;
+    }
+
+    private function upgradeGeneratedRoutes(string $contents): string
+    {
+        $updated = str_replace(
+            [
+                ")->name('dcode.login');",
+                ")->name('dcode.login.store');",
+                ")->name('dcode.password.request');",
+                ")->name('dcode.password.email');",
+                ")->name('dcode.password.reset');",
+                ")->name('dcode.password.update');",
+                ")->name('dcode.dashboard');",
+                ")->name('dcode.logout');",
+                ")->name('dcode.profile.edit');",
+                ")->name('dcode.profile.update');",
+                ")->name('dcode.password.edit');",
+                ")->name('dcode.password.store');",
+            ],
+            [
+                ")->name('login');",
+                ');',
+                ")->name('password.request');",
+                ")->name('password.email');",
+                ")->name('password.reset');",
+                ")->name('password.store');",
+                ")->name('dashboard');",
+                ")->name('logout');",
+                ")->name('profile.edit');",
+                ")->name('profile.update');",
+                ")->name('password.edit');",
+                ")->name('password.update');",
+            ],
+            $contents,
+        );
+
+        return $updated;
     }
 
     /** @param array<int, string> $arguments @param callable(string): void $output */

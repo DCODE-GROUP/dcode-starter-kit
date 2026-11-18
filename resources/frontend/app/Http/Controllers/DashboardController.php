@@ -14,7 +14,7 @@ class DashboardController
     public function __invoke(Request $request): Response|RedirectResponse
     {
         if (! $request->user()) {
-            return to_route('dcode.login');
+            return to_route('login');
         }
 
         return Inertia::render('Dashboard');

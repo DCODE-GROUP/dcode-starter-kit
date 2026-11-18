@@ -27,7 +27,7 @@ class AuthenticatedSessionController
         }
         $request->session()->regenerate();
 
-        return to_route('dcode.dashboard');
+        return to_route('dashboard');
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -36,6 +36,6 @@ class AuthenticatedSessionController
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return to_route('dcode.login');
+        return to_route('login');
     }
 }

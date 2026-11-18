@@ -4,7 +4,7 @@
       <nav class="sidebar__nav" :class="isOpen ? 'sidebar__nav--open' : 'sidebar__nav--closed'">
         <div class="sidebar__nav-top">
           <div class="sidebar__logo-wrapper">
-            <Link :href="route('dcode.dashboard')" class="sidebar__logo-link" :title="translate('navigation.dashboard')">
+            <Link :href="route('dashboard')" class="sidebar__logo-link" :title="translate('navigation.dashboard')">
               <span class="sidebar__logo">{{ translate('navigation.brand') }}</span>
             </Link>
           </div>
@@ -21,11 +21,11 @@
 
         <div class="sidebar__nav-bottom">
           <hr class="sidebar__divider" />
-          <Link :href="route('dcode.profile.edit')" class="sidebar__account-link">
+          <Link :href="route('profile.edit')" class="sidebar__account-link">
             <DsgIcon icon="user-01" />
             <span class="sidebar__nav-list-link-label">{{ translate('account.profile') }}</span>
           </Link>
-          <Link :href="route('dcode.logout')" method="post" as="button" class="sidebar__account-link">
+          <Link :href="route('logout')" method="post" as="button" class="sidebar__account-link">
             <DsgIcon icon="log-out-01" />
             <span class="sidebar__nav-list-link-label">{{ translate('navigation.logout') }}</span>
           </Link>
@@ -49,8 +49,8 @@ import { useLaravelLocale } from "@composables/useLaravelLocale";
 const { trans: translate } = useLaravelLocale();
 const isOpen = ref(true);
 const menuItems = [
-  { label: translate("navigation.dashboard"), route: "dcode.dashboard", icon: "home-01" },
-  { label: translate("account.profile"), route: "dcode.profile.edit", icon: "user-01" },
-  { label: translate("account.password"), route: "dcode.password.edit", icon: "lock-01" },
+  { label: translate("navigation.dashboard"), route: "dashboard", icon: "home-01" },
+  { label: translate("account.profile"), route: "profile.edit", icon: "user-01" },
+  { label: translate("account.password"), route: "password.edit", icon: "lock-01" },
 ];
 </script>
