@@ -7,6 +7,7 @@ namespace DcodeStarterKit\DcodeStarterKit\Console\Commands;
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitDependencies;
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
@@ -29,6 +30,7 @@ class InstallCommand extends Command
         SetupSpatiePermission $permissionSetup,
         PublishActivityLogMigrations $activityLogMigrations,
         SetupFortifySanctum $fortifySanctum,
+        SetupActivityLog $activityLog,
     ): int {
         $failedStep = $installer->install(
             base_path(),
@@ -71,6 +73,19 @@ class InstallCommand extends Command
         }
 
         $this->info('Activity log migrations published successfully.');
+
+        if (! $activityLog->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupActivityLog::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Activity log User integration configured successfully.');
 
         $this->info('Dcode Starter Kit frontend installed successfully.');
 
