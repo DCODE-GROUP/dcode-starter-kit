@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitDependencies;
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
+use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 use DcodeStarterKit\DcodeStarterKit\DcodeStarterKit;
 
@@ -40,6 +43,18 @@ it('registers the install artisan command', function () {
     $frontend = Mockery::mock(InstallDcodeStarterKitFrontend::class);
     $frontend->allows('install')->andReturn(true);
     app()->instance(InstallDcodeStarterKitFrontend::class, $frontend);
+
+    $activityLogMigrations = Mockery::mock(PublishActivityLogMigrations::class);
+    $activityLogMigrations->allows('publish')->andReturn(true);
+    app()->instance(PublishActivityLogMigrations::class, $activityLogMigrations);
+
+    $macroServiceProvider = Mockery::mock(SetupMacroServiceProvider::class);
+    $macroServiceProvider->allows('setup')->andReturn(true);
+    app()->instance(SetupMacroServiceProvider::class, $macroServiceProvider);
+
+    $usersMigration = Mockery::mock(SetupDefaultUsersMigration::class);
+    $usersMigration->allows('setup')->andReturn(true);
+    app()->instance(SetupDefaultUsersMigration::class, $usersMigration);
 
     app()->instance(InstallDcodeStarterKitDependencies::class, new InstallDcodeStarterKitDependencies(
         function (array $arguments, string $workingDirectory, callable $output): bool {

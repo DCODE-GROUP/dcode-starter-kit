@@ -6,7 +6,10 @@ namespace DcodeStarterKit\DcodeStarterKit\Console\Commands;
 
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitDependencies;
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
+use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 use Illuminate\Console\Command;
 
@@ -20,7 +23,10 @@ class InstallCommand extends Command
         InstallDcodeStarterKitDependencies $installer,
         InstallDcodeStarterKitFrontend $frontend,
         SetupComposerHooks $composerHooks,
+        SetupMacroServiceProvider $macroServiceProvider,
+        SetupDefaultUsersMigration $usersMigration,
         SetupSpatiePermission $permissionSetup,
+        PublishActivityLogMigrations $activityLogMigrations,
     ): int {
         $failedStep = $installer->install(
             base_path(),
@@ -50,7 +56,47 @@ class InstallCommand extends Command
 
         $this->newLine();
         $this->info('Dcode Starter Kit dependencies installed successfully.');
+
+        if (! $activityLogMigrations->publish(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.PublishActivityLogMigrations::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Activity log migrations published successfully.');
+
         $this->info('Dcode Starter Kit frontend installed successfully.');
+
+        if (! $macroServiceProvider->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupMacroServiceProvider::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('MacroServiceProvider configured successfully.');
+
+        if (! $usersMigration->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupDefaultUsersMigration::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Default users migration configured successfully.');
 
         if (! $composerHooks->setup(
             base_path(),

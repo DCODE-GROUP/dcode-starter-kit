@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitDependencies;
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
+use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 
 beforeEach(function () {
@@ -19,6 +22,18 @@ beforeEach(function () {
     $frontend = Mockery::mock(InstallDcodeStarterKitFrontend::class);
     $frontend->allows('install')->andReturn(true);
     app()->instance(InstallDcodeStarterKitFrontend::class, $frontend);
+
+    $macroServiceProvider = Mockery::mock(SetupMacroServiceProvider::class);
+    $macroServiceProvider->allows('setup')->andReturn(true);
+    app()->instance(SetupMacroServiceProvider::class, $macroServiceProvider);
+
+    $usersMigration = Mockery::mock(SetupDefaultUsersMigration::class);
+    $usersMigration->allows('setup')->andReturn(true);
+    app()->instance(SetupDefaultUsersMigration::class, $usersMigration);
+
+    $activityLogMigrations = Mockery::mock(PublishActivityLogMigrations::class);
+    $activityLogMigrations->allows('publish')->andReturn(true);
+    app()->instance(PublishActivityLogMigrations::class, $activityLogMigrations);
 });
 
 it('installs runtime and development dependencies with Composer from the application root', function () {
