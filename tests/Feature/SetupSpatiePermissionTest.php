@@ -56,6 +56,38 @@ it('enables teams with the default or custom valid foreign key', function (strin
         ->and(file_get_contents($directory.'/config/permission.php'))->toContain("'team_foreign_key' => '$foreignKey'");
 })->with(['team_id', 'organisation_id']);
 
+it('uses an explicit tenancy override without asking questions', function (bool $teams) {
+    $directory = permissionFixture(permissionConfig());
+    $action = new SetupSpatiePermission(function (array $arguments, string $workingDirectory, callable $output) use ($directory): bool {
+        if (str_contains(implode(' ', $arguments), 'vendor:publish')) {
+            file_put_contents($directory.'/database/migrations/2026_01_01_000000_create_permission_tables.php', "Schema::create('roles', fn () => null);");
+        }
+
+        return true;
+    });
+
+    $asked = false;
+
+    expect($action->setup(
+        $directory,
+        fn () => null,
+        function () use (&$asked): bool {
+            $asked = true;
+
+            return false;
+        },
+        function () use (&$asked): string {
+            $asked = true;
+
+            return 'team_id';
+        },
+        false,
+        $teams,
+    ))->toBeTrue()
+        ->and($asked)->toBeFalse()
+        ->and(file_get_contents($directory.'/config/permission.php'))->toContain("'teams' => ".($teams ? 'true' : 'false'));
+})->with([true, false]);
+
 it('does not publish duplicate migrations or overwrite existing config on rerun', function () {
     $directory = permissionFixture(permissionConfig(true, 'tenant_id', 'keep'), true);
     $before = file_get_contents($directory.'/config/permission.php');

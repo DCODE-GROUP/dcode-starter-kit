@@ -28,6 +28,7 @@ class SetupSpatiePermission
         callable $confirm,
         callable $ask,
         bool $interactive = true,
+        ?bool $tenancyOverride = null,
     ): bool {
         $configPath = $workingDirectory.'/config/permission.php';
         $existingConfig = is_file($configPath) ? file_get_contents($configPath) : null;
@@ -42,6 +43,7 @@ class SetupSpatiePermission
             $confirm,
             $ask,
             $interactive,
+            $tenancyOverride,
         );
 
         if (! $this->isValidColumnIdentifier($foreignKey)) {
@@ -124,18 +126,19 @@ class SetupSpatiePermission
         callable $confirm,
         callable $ask,
         bool $interactive,
+        ?bool $tenancyOverride,
     ): array {
         $output("Spatie's teams feature scopes roles and role assignments to a team or tenant in a shared database. It does not implement application tenancy itself.\n");
 
-        $teams = $existingTeams ?? false;
+        $teams = $tenancyOverride ?? $existingTeams ?? false;
 
-        if ($interactive) {
+        if ($tenancyOverride === null && $interactive) {
             $teams = $confirm($teams, 'Should roles and role assignments be scoped to a team/tenant?');
         }
 
         $foreignKey = $existingForeignKey ?? 'team_id';
 
-        if ($teams && $interactive) {
+        if ($teams && $tenancyOverride === null && $interactive) {
             do {
                 $foreignKey = $ask('What is the tenant foreign-key column name?', $foreignKey);
 
@@ -151,7 +154,7 @@ class SetupSpatiePermission
     /** @param callable(string): void $output */
     private function reportNextSteps(callable $output, bool $teams): void
     {
-        $output("Next steps: review config/permission.php and the published migration, then run php artisan migrate. Add Spatie\\Permission\\Traits\\HasRoles to the appropriate authenticatable model.\n");
+        $output("Next steps: review config/permission.php and the published migration. The starter installs HasRoles on the host User model.\n");
 
         if ($teams) {
             $output("With teams enabled, call setPermissionsTeamId(\$tenantId) from the application's tenancy context before permission checks and clear loaded roles and permissions relations when changing tenant context.\n");

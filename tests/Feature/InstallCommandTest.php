@@ -6,6 +6,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitDependencies;
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishAttachmentMigrations;
+use DcodeStarterKit\DcodeStarterKit\Actions\RunDcodeStarterKitDatabaseSetup;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
@@ -13,6 +14,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupUserManagement;
 
 beforeEach(function () {
     $composerHooks = Mockery::mock(SetupComposerHooks::class);
@@ -50,6 +52,14 @@ beforeEach(function () {
     $attachments = Mockery::mock(SetupAttachments::class);
     $attachments->allows('setup')->andReturn(true);
     app()->instance(SetupAttachments::class, $attachments);
+
+    $userManagement = Mockery::mock(SetupUserManagement::class);
+    $userManagement->allows('setup')->andReturn(true);
+    app()->instance(SetupUserManagement::class, $userManagement);
+
+    $databaseSetup = Mockery::mock(RunDcodeStarterKitDatabaseSetup::class);
+    $databaseSetup->allows('run')->andReturn(true);
+    app()->instance(RunDcodeStarterKitDatabaseSetup::class, $databaseSetup);
 
     $activityLogMigrations = Mockery::mock(PublishActivityLogMigrations::class);
     $activityLogMigrations->allows('publish')->andReturn(true);

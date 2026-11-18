@@ -8,6 +8,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitDependencies;
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishAttachmentMigrations;
+use DcodeStarterKit\DcodeStarterKit\Actions\RunDcodeStarterKitDatabaseSetup;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
@@ -15,11 +16,12 @@ use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupUserManagement;
 use Illuminate\Console\Command;
 
 class InstallCommand extends Command
 {
-    protected $signature = 'dcode:install';
+    protected $signature = 'dcode:install {--tenancy= : Set permission teams/tenancy to true or false without prompting.}';
 
     protected $description = 'Install the Dcode Starter Kit application dependencies.';
 
@@ -35,7 +37,32 @@ class InstallCommand extends Command
         SetupActivityLog $activityLog,
         PublishAttachmentMigrations $attachmentMigrations,
         SetupAttachments $attachments,
+        SetupUserManagement $userManagement,
+        RunDcodeStarterKitDatabaseSetup $databaseSetup,
     ): int {
+        $tenancyOption = $this->option('tenancy');
+        $tenancy = null;
+
+        if ($tenancyOption !== null) {
+            if (is_array($tenancyOption) || (! is_string($tenancyOption) && ! is_int($tenancyOption) && ! is_bool($tenancyOption))) {
+                $this->error('The --tenancy option must be true, false, yes, or no.');
+
+                return self::FAILURE;
+            }
+
+            $tenancy = match (strtolower((string) $tenancyOption)) {
+                '1', 'true', 'yes' => true,
+                '0', 'false', 'no' => false,
+                default => null,
+            };
+
+            if ($tenancy === null) {
+                $this->error('The --tenancy option must be true, false, yes, or no.');
+
+                return self::FAILURE;
+            }
+        }
+
         $failedStep = $installer->install(
             base_path(),
             function (string $output): void {
@@ -50,14 +77,6 @@ class InstallCommand extends Command
             if ($failedStep === InstallDcodeStarterKitDependencies::DEVELOPMENT_STEP) {
                 $this->line('Runtime dependencies were installed successfully; development dependencies were not completed.');
             }
-
-            return self::FAILURE;
-        }
-
-        if (! $frontend->install(base_path(), function (string $output): void {
-            $this->output->write($output);
-        })) {
-            $this->error('Dcode Starter Kit installation failed during '.InstallDcodeStarterKitFrontend::STEP.'.');
 
             return self::FAILURE;
         }
@@ -116,8 +135,6 @@ class InstallCommand extends Command
         }
 
         $this->info('Laravel Attachments configured successfully.');
-
-        $this->info('Dcode Starter Kit frontend installed successfully.');
 
         if (! $fortifySanctum->setup(
             base_path(),
@@ -179,6 +196,7 @@ class InstallCommand extends Command
             fn (bool $default, string $question): bool => $this->confirm($question, $default),
             fn (string $question, string $default): string => (string) $this->ask($question, $default),
             $this->input->isInteractive(),
+            $tenancy,
         )) {
             $this->error('Dcode Starter Kit installation failed during '.SetupSpatiePermission::STEP.'.');
 
@@ -186,6 +204,42 @@ class InstallCommand extends Command
         }
 
         $this->info('Spatie permission configuration and migrations are ready for review.');
+
+        if (! $userManagement->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupUserManagement::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('User and role management configured successfully.');
+
+        if (! $frontend->install(base_path(), function (string $output): void {
+            $this->output->write($output);
+        })) {
+            $this->error('Dcode Starter Kit installation failed during '.InstallDcodeStarterKitFrontend::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Dcode Starter Kit frontend installed successfully.');
+
+        if (! $databaseSetup->run(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.RunDcodeStarterKitDatabaseSetup::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Database migrations and starter seeding completed successfully.');
 
         return self::SUCCESS;
     }

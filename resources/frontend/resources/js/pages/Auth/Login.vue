@@ -10,8 +10,8 @@
             <div class="auth__content-form-row"><DsgInput v-model="form.password" type="password" name="password" :label="translate('auth.fields.password')" :errors="form.errors.password" autocomplete="current-password" /></div>
             <div class="auth__content-form-row"><DsgCheckbox v-model="form.remember" name="remember" size="sm" :label="translate('auth.fields.remember_me')" /></div>
           </div>
+        <div class="auth__content-actions gap-2"><div class="auth-content-actions-left"><DsgButton :uri="route('password.request')" :label="translate('auth.buttons.forgot_password')" theme="brand-link" size="sm" /><DsgButton :uri="route('register')" label="Register" theme="brand-link" size="sm" /></div><div class="auth-content-actions-right"><DsgButton type="submit" :label="translate('auth.buttons.login')" /></div></div>
         </form>
-        <div class="auth__content-actions gap-2"><div class="auth-content-actions-left"><DsgButton :uri="route('password.request')" :label="translate('auth.buttons.forgot_password')" theme="brand-link" size="sm" /><DsgButton :uri="route('register')" label="Register" theme="brand-link" size="sm" /></div><div class="auth-content-actions-right"><DsgButton type="submit" :label="translate('auth.buttons.login')" @button-clicked="submit" /></div></div>
       </div>
     </div></div>
   </AuthLayout>

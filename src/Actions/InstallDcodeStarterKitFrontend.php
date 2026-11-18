@@ -195,7 +195,8 @@ class InstallDcodeStarterKitFrontend
                 && str_contains($contents, 'AppLayout')
                 && str_contains($contents, 'dcode.'),
             'resources/js/components/Navigation/AppSidebar.vue' => str_contains($contents, 'sidebar__nav')
-                && str_contains($contents, 'dcode.'),
+                && (str_contains($contents, 'dcode.')
+                    || (str_contains($contents, 'admin.dashboard') && str_contains($contents, '@dsg'))),
             'resources/js/layouts/App.vue' => str_contains($contents, 'AppSidebar')
                 || str_contains($contents, 'admin.dashboard'),
             'resources/js/layouts/Auth.vue' => str_contains($contents, 'auth__container')

@@ -19,6 +19,9 @@ class HandleDcodeInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => fn () => $request->user(),
+                'permissions' => fn () => $request->user() && method_exists($request->user(), 'getAllPermissions')
+                    ? $request->user()->getAllPermissions()->pluck('name')->values()
+                    : [],
             ],
             'translations' => [
                 'auth' => trans('dcode-starter-kit::messages.auth'),

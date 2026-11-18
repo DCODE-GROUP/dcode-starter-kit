@@ -46,7 +46,13 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
     expect(file_get_contents($directory.'/resources/js/layouts/App.vue'))
         ->toContain('AppSidebar');
     expect(file_get_contents($directory.'/resources/js/components/Navigation/AppSidebar.vue'))
-        ->toContain('sidebar__nav');
+        ->toContain('sidebar__nav')
+        ->toContain('DsgDropdown')
+        ->toContain('sidebar__submenu')
+        ->toContain('hasActiveSubmenu')
+        ->toContain('isNavOpen')
+        ->toContain('admin.users.index')
+        ->toContain('admin.roles.index');
     expect(file_get_contents($directory.'/resources/js/pages/Auth/Login.vue'))
         ->toContain('auth__content-actions')
         ->toContain('DsgCheckbox');
