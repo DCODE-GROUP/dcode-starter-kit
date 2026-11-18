@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitDependencies;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 use DcodeStarterKit\DcodeStarterKit\DcodeStarterKit;
 
 it('resolves the singleton', function () {
@@ -26,6 +28,14 @@ it('loads the package views', function () {
 });
 
 it('registers the install artisan command', function () {
+    $composerHooks = Mockery::mock(SetupComposerHooks::class);
+    $composerHooks->allows('setup')->andReturn(true);
+    app()->instance(SetupComposerHooks::class, $composerHooks);
+
+    $permissionSetup = Mockery::mock(SetupSpatiePermission::class);
+    $permissionSetup->allows('setup')->andReturn(true);
+    app()->instance(SetupSpatiePermission::class, $permissionSetup);
+
     app()->instance(InstallDcodeStarterKitDependencies::class, new InstallDcodeStarterKitDependencies(
         function (array $arguments, string $workingDirectory, callable $output): bool {
             return true;

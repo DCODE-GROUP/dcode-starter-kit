@@ -3,6 +3,18 @@
 declare(strict_types=1);
 
 use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitDependencies;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
+
+beforeEach(function () {
+    $composerHooks = Mockery::mock(SetupComposerHooks::class);
+    $composerHooks->allows('setup')->andReturn(true);
+    app()->instance(SetupComposerHooks::class, $composerHooks);
+
+    $permissionSetup = Mockery::mock(SetupSpatiePermission::class);
+    $permissionSetup->allows('setup')->andReturn(true);
+    app()->instance(SetupSpatiePermission::class, $permissionSetup);
+});
 
 it('installs runtime and development dependencies with Composer from the application root', function () {
     $calls = [];
@@ -38,7 +50,17 @@ it('installs runtime and development dependencies with Composer from the applica
             base_path(),
         ])
         ->and($calls[1])->toBe([
-            ['composer', 'require', '--dev', 'dcode-group/composer-git-hooks'],
+            [
+                'composer',
+                'require',
+                '--dev',
+                'dcode-group/composer-git-hooks',
+                'larastan/larastan',
+                'laravel/pail',
+                'pestphp/pest',
+                'pestphp/pest-plugin-laravel',
+                'pestphp/pest-plugin-type-coverage',
+            ],
             base_path(),
         ]);
 });

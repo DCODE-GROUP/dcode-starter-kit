@@ -29,6 +29,11 @@ class InstallDcodeStarterKitDependencies
 
     private const array DEVELOPMENT_DEPENDENCIES = [
         'dcode-group/composer-git-hooks',
+        'larastan/larastan',
+        'laravel/pail',
+        'pestphp/pest',
+        'pestphp/pest-plugin-laravel',
+        'pestphp/pest-plugin-type-coverage',
     ];
 
     public function __construct(?Closure $processRunner = null)

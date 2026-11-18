@@ -46,9 +46,15 @@ It adds this development dependency:
 
 These dependencies are added directly to the consuming application and can be managed independently after installation. Any private repositories and credentials must already be configured in that application and its environment.
 
-This initial installer only adds dependencies. It does not yet publish package configuration or migrations, run migrations, configure Git hooks, or perform other package-specific setup.
+After dependency installation succeeds, the installer interactively configures `spatie/laravel-permission`. It explains that teams scope roles and role assignments in a shared database, but do not implement application tenancy, then asks whether teams should be enabled. The default is the existing `permission.teams` value when available, otherwise `false`. If enabled, the tenant foreign key defaults to the existing configured value or `team_id`; names such as `tenant_id` and `organisation_id` are accepted.
 
-Composer output is streamed to the terminal. If either dependency group fails, the command stops and returns a failure status; a development dependency failure means the runtime dependencies may already have been installed. Fix the application or Composer configuration and run `php artisan dcode:install` again. Composer safely handles already-installed entries when rerunning the command.
+The installer publishes Spatie's `config/permission.php` and initial permission migration without force-overwriting existing files, updates only the teams settings while preserving other configuration, and clears the configuration cache. It avoids duplicate permission migrations on reruns. If existing permission migrations indicate that changing teams or its foreign key may require a schema upgrade, it preserves the current configuration and reports the manual upgrade path. Non-interactive runs use the existing values or these defaults and do not wait for input.
+
+Review the published configuration and migrations, then run `php artisan migrate`. Add `Spatie\Permission\Traits\HasRoles` to the appropriate authenticatable model. With teams enabled, call `setPermissionsTeamId($tenantId)` from the application's actual tenancy context before permission checks; when changing tenant context, clear the model's loaded `roles` and `permissions` relations. Teams configuration does not provide tenant resolution or data isolation. UUID/ULID identifiers may require migration and model adjustments before migration. The installer does not create tenant models, tenant tables, middleware, roles, permissions, or seeders, and does not claim that the application's permission or tenancy integration is complete.
+
+If permission migrations have already run, review the schema and use Spatie's `php artisan permission:setup-teams` upgrade path when appropriate, then run `php artisan migrate`; the installer does not run it automatically.
+
+The installer also adds the Composer `extra.hooks` configuration used by the DCode project starter to the application's `composer.json`, while preserving unrelated Composer metadata. Composer output is streamed to the terminal. If dependency installation or hook configuration fails, the command stops and returns a failure status; a development dependency failure means the runtime dependencies may already have been installed. Fix the application or Composer configuration and run `php artisan dcode:install` again. Composer safely handles already-installed entries when rerunning the command.
 
 ## Usage
 
