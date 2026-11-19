@@ -81,6 +81,11 @@ it('installs permission-based user and role management into the host application
         ->and(file_get_contents($directory.'/app/Tables/RolesTable.php'))->toContain("Column::make('name', 'Name')->isSortable()->toArray()")
         ->and(file_get_contents($directory.'/resources/js/pages/Admin/Users/Index.vue'))->toContain('DsgTable')
         ->and(file_get_contents($directory.'/resources/js/pages/Admin/Roles/Index.vue'))->toContain('DsgTable')
+        ->and(file_get_contents($directory.'/resources/js/pages/Admin/Users/CreateEdit.vue'))->toContain('ContentAside')
+        ->and(file_get_contents($directory.'/resources/js/pages/Admin/Users/CreateEdit.vue'))->toContain('PageFooterButtons')
+        ->and(file_get_contents($directory.'/resources/js/pages/Admin/Users/CreateEdit.vue'))->toContain('DsgInputSelect')
+        ->and(file_get_contents($directory.'/resources/js/pages/Admin/Roles/CreateEdit.vue'))->toContain('ContentAside')
+        ->and(file_get_contents($directory.'/resources/js/pages/Admin/Roles/CreateEdit.vue'))->toContain('PageFooterButtons')
         ->and(file_get_contents($directory.'/routes/web.php'))->toContain('DsgTable\\Http\\Controllers\\TableController')
         ->and(file_get_contents($directory.'/routes/web.php'))->toContain("Route::resource('users', UserController::class)");
 });

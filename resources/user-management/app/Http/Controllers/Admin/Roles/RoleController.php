@@ -60,7 +60,11 @@ class RoleController extends Controller
         ]);
         $role->syncPermissions($request->validated('permissions', []));
 
-        return to_route('admin.roles.index')->with('status', 'Role created.');
+        return to_route('admin.roles.index')->with('status', [
+            'title' => 'Success',
+            'message' => 'Role created successfully.',
+            'type' => 'success',
+        ]);
     }
 
     public function update(UpdateRequest $request, Role $role): RedirectResponse
@@ -68,7 +72,11 @@ class RoleController extends Controller
         $role->update(['name' => $request->validated('name')]);
         $role->syncPermissions($request->validated('permissions', []));
 
-        return to_route('admin.roles.edit', $role)->with('status', 'Role updated.');
+        return to_route('admin.roles.index')->with('status', [
+            'title' => 'Success',
+            'message' => 'Role updated successfully.',
+            'type' => 'success',
+        ]);
     }
 
     public function destroy(Role $role): RedirectResponse

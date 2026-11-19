@@ -1,52 +1,181 @@
 <template>
-  <AppLayout :title="title">
-    <div class="max-w-3xl rounded-lg bg-white p-6 shadow-sm">
-      <form class="space-y-5" @submit.prevent="submit">
-        <div class="grid gap-4 md:grid-cols-3">
-          <DsgInput v-model="form.first_name" name="first_name" label="First name" :errors="form.errors.first_name" />
-          <DsgInput v-model="form.middle_name" name="middle_name" label="Middle name" :errors="form.errors.middle_name" />
-          <DsgInput v-model="form.last_name" name="last_name" label="Last name" :errors="form.errors.last_name" />
-        </div>
-        <DsgInput v-model="form.email" type="email" name="email" label="Email" :errors="form.errors.email" />
-        <div class="grid gap-4 md:grid-cols-2">
-          <DsgInput v-model="form.password" type="password" name="password" label="Password" :errors="form.errors.password" :required="!user" />
-          <DsgInput v-model="form.password_confirmation" type="password" name="password_confirmation" label="Confirm password" :errors="form.errors.password_confirmation" :required="!user" />
-        </div>
-        <label class="flex items-center gap-2 text-sm"><input v-model="form.active" type="checkbox" /> Active</label>
-        <fieldset v-if="canManageRoles" class="space-y-2">
-          <legend class="font-semibold">Roles</legend>
-          <label v-for="role in roles" :key="role.id" class="flex items-center gap-2 text-sm">
-            <input v-model="form.role_ids" type="checkbox" :value="role.id" /> {{ role.name }}
-          </label>
-        </fieldset>
-        <div class="flex justify-end gap-3"><DsgButton :uri="route('admin.users.index')" label="Cancel" theme="neutral-link" /><DsgButton type="submit" :label="user ? 'Save changes' : 'Create user'" :disabled="form.processing" /></div>
-      </form>
-    </div>
-  </AppLayout>
+    <AppLayout :title="title">
+        <form
+            class="flex min-h-full flex-col justify-between gap-4"
+            @submit.prevent="submit"
+        >
+            <ContentAside class="bg-gray-100">
+                <template #content>
+                    <SidePanel title="Basic information" theme="white">
+                        <div class="flex flex-col gap-6">
+                            <div class="grid gap-3 lg:grid-cols-3">
+                                <DsgInput
+                                    v-model="form.first_name"
+                                    name="first_name"
+                                    label="First name"
+                                    :errors="form.errors.first_name"
+                                    required-label
+                                    size="sm"
+                                />
+                                <DsgInput
+                                    v-model="form.middle_name"
+                                    name="middle_name"
+                                    label="Middle name"
+                                    :errors="form.errors.middle_name"
+                                    size="sm"
+                                />
+                                <DsgInput
+                                    v-model="form.last_name"
+                                    name="last_name"
+                                    label="Last name"
+                                    :errors="form.errors.last_name"
+                                    required-label
+                                    size="sm"
+                                />
+                            </div>
+                            <DsgInput
+                                v-model="form.email"
+                                type="email"
+                                name="email"
+                                label="Email"
+                                :errors="form.errors.email"
+                                required-label
+                                size="sm"
+                            />
+                            <div class="grid gap-3 lg:grid-cols-2">
+                                <DsgInput
+                                    v-model="form.password"
+                                    type="password"
+                                    name="password"
+                                    label="Password"
+                                    :errors="form.errors.password"
+                                    :required-label="!user"
+                                    size="sm"
+                                />
+                                <DsgInput
+                                    v-model="form.password_confirmation"
+                                    type="password"
+                                    name="password_confirmation"
+                                    label="Confirm password"
+                                    :errors="form.errors.password_confirmation"
+                                    :required-label="!user"
+                                    size="sm"
+                                />
+                            </div>
+                        </div>
+                    </SidePanel>
+                </template>
+
+                <template #sidebar>
+                    <SidePanel title="Status" theme="white">
+                        <DsgCheckbox
+                            v-model="form.active"
+                            label="Active"
+                            size="sm"
+                        />
+                    </SidePanel>
+
+                    <SidePanel
+                        v-if="canManageRoles"
+                        title="Roles"
+                        theme="white"
+                        description="Assign roles to control access to the application."
+                    >
+                        <DsgInputSelect
+                            v-model="selectedRoles"
+                            :options="roleOptions"
+                            :errors="form.errors.role_ids"
+                            :multiple="true"
+                            :allow-empty="true"
+                            searchable
+                            size="sm"
+                        />
+                    </SidePanel>
+                </template>
+            </ContentAside>
+
+            <PageFooterButtons
+                :cancel-url="route('admin.users.index')"
+                :save-label="user ? 'Save changes' : 'Create user'"
+            />
+        </form>
+    </AppLayout>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { useForm, usePage } from "@inertiajs/vue3";
-import { DsgButton, DsgInput } from "@dcodegroup-au/dsg-vue";
+import {
+    DsgAlert,
+    DsgButton,
+    DsgCheckbox,
+    DsgInput,
+    DsgInputSelect,
+} from "@dcodegroup-au/dsg-vue";
 import { route } from "ziggy-js";
 import AppLayout from "@layouts/App.vue";
+import ContentAside from "@components/ContentAside.vue";
+import PageFooterButtons from "@components/PageFooterButtons.vue";
+import SidePanel from "@components/SidePanel.vue";
 
-interface Role { id: number; name: string }
-interface User { id: number; first_name?: string; middle_name?: string; last_name?: string; email: string; active: boolean; roles?: Role[] }
-const props = defineProps<{ user: User | null; roles: Role[]; title: string }>();
+interface Role {
+    id: number;
+    name: string;
+}
+interface User {
+    id: number;
+    first_name?: string;
+    middle_name?: string;
+    last_name?: string;
+    email: string;
+    active: boolean;
+    roles?: Role[];
+}
+const props = defineProps<{
+    user: User | null;
+    roles: Role[];
+    title: string;
+}>();
 const page = usePage<{ auth: { permissions?: string[] } }>();
-const canManageRoles = (page.props.auth.permissions ?? []).includes("admin-portal-roles-permissions-update");
+const canManageRoles = (page.props.auth.permissions ?? []).includes(
+    "admin-portal-roles-permissions-update",
+);
 const user = props.user;
+const roleOptions = props.roles.map((role) => ({
+    id: role.id,
+    label: role.name,
+}));
 const form = useForm({
-  first_name: user?.first_name ?? "",
-  middle_name: user?.middle_name ?? "",
-  last_name: user?.last_name ?? "",
-  email: user?.email ?? "",
-  password: "",
-  password_confirmation: "",
-  active: user?.active ?? true,
-  role_ids: user?.roles?.map((role) => role.id) ?? [] as number[],
+    first_name: user?.first_name ?? "",
+    middle_name: user?.middle_name ?? "",
+    last_name: user?.last_name ?? "",
+    email: user?.email ?? "",
+    password: "",
+    password_confirmation: "",
+    active: user?.active ?? true,
+    role_ids: user?.roles?.map((role) => role.id) ?? ([] as number[]),
+});
+const selectedRoles = computed({
+    get: () => roleOptions.filter((role) => form.role_ids.includes(role.id)),
+    set: (selected: typeof roleOptions | null) => {
+        form.role_ids = selected?.map((role) => role.id) ?? [];
+    },
 });
 
-const submit = (): void => user ? form.put(route("admin.users.update", user.id)) : form.post(route("admin.users.store"));
+const submit = (): void => {
+    const options = {
+        onError: (): void => {
+            DsgAlert.error(
+                "Save failed",
+                "The user could not be saved. Please review the form and try again.",
+            );
+        },
+    };
+
+    if (user) {
+        form.put(route("admin.users.update", user.id), options);
+    } else {
+        form.post(route("admin.users.store"), options);
+    }
+};
 </script>

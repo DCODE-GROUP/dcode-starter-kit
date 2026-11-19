@@ -61,7 +61,11 @@ class UserController extends Controller
         $user->forceFill($data)->save();
         $user->syncRoles($roleIds);
 
-        return to_route('admin.users.index')->with('status', 'User created.');
+        return to_route('admin.users.index')->with('status', [
+            'title' => 'Success',
+            'message' => 'User created successfully.',
+            'type' => 'success',
+        ]);
     }
 
     public function update(UpdateRequest $request, User $user): RedirectResponse
@@ -76,19 +80,26 @@ class UserController extends Controller
             $data['password'] = Hash::make($data['password']);
         }
 
-        if ($user->is(auth()->user())) {
-            unset($data['active'], $roleIds);
+        $isCurrentUser = $user->getKey() === auth()->id();
+
+        if ($isCurrentUser) {
+            unset($data['active']);
+            $roleIds = null;
         } else {
             $data['active'] = (bool) ($data['active'] ?? false);
         }
 
         $user->forceFill($data)->save();
 
-        if ($roleIds !== null && ! $user->is(auth()->user())) {
+        if ($roleIds !== null && ! $isCurrentUser) {
             $user->syncRoles($roleIds);
         }
 
-        return to_route('admin.users.edit', $user)->with('status', 'User updated.');
+        return to_route('admin.users.index')->with('status', [
+            'title' => 'Success',
+            'message' => 'User updated successfully.',
+            'type' => 'success',
+        ]);
     }
 
     public function destroy(User $user): RedirectResponse

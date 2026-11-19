@@ -90,6 +90,10 @@ class SetupUserManagement
                 && str_contains($contents, 'admin.users.index'),
             'resources/js/pages/Admin/Roles/Index.vue' => str_contains($contents, '<table')
                 && str_contains($contents, 'admin.roles.index'),
+            'resources/js/pages/Admin/Users/CreateEdit.vue' => str_contains($contents, 'class="max-w-3xl')
+                && str_contains($contents, 'admin.users.update'),
+            'resources/js/pages/Admin/Roles/CreateEdit.vue' => str_contains($contents, 'class="max-w-3xl')
+                && str_contains($contents, 'admin.roles.update'),
             'app/Http/Controllers/Admin/Users/UserController.php' => str_contains($contents, "Inertia::render('Admin/Users/Index'")
                 && str_contains($contents, 'Gate::authorize'),
             'app/Http/Controllers/Admin/Roles/RoleController.php' => str_contains($contents, "Inertia::render('Admin/Roles/Index'")

@@ -47,9 +47,12 @@ import { DsgTable, DsgTablePerPage, DsgTableSearch } from "@dsg/table";
 import { DsgBadge, DsgButton } from "@dsg";
 import { route } from "ziggy-js";
 import AppLayout from "@layouts/App.vue";
+import { mountedStatusToast } from "@composables/StatusToast";
 
-const props = defineProps<{ fields: Record<string, unknown>[] }>();
-const permissions = usePage<{ auth: { permissions?: string[] } }>().props.auth.permissions ?? [];
+const props = defineProps<{ fields: Record<string, unknown>[]; status?: string }>();
+const page = usePage<{ auth: { permissions?: string[] }; status?: string }>();
+mountedStatusToast(props.status ?? page.props.status);
+const permissions = page.props.auth.permissions ?? [];
 const fields = props.fields;
 const canCreate = permissions.includes("admin-portal-users-create");
 const dsgTableRef = useTemplateRef<InstanceType<typeof DsgTable>>("dsgTableRef");
