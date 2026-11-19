@@ -28,12 +28,13 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->and($calls)->toHaveCount(2)
         ->and($calls[0][0])->toBe(['pnpm', 'install'])
         ->and($calls[1][0])->toBe(['pnpm', 'run', 'build'])
-        ->and(is_file($directory.'/resources/js/dcode-starter-kit.ts'))->toBeTrue()
+        ->and(is_file($directory.'/resources/js/app.ts'))->toBeTrue()
         ->and(is_file($directory.'/resources/js/components/Navigation/AppSidebar.vue'))->toBeTrue()
         ->and(is_file($directory.'/app/Services/NavigationService.php'))->toBeTrue()
-        ->and(is_file($directory.'/vite.config.dcode.ts'))->toBeTrue();
+        ->and(is_file($directory.'/vite.config.ts'))->toBeTrue()
+        ->and(is_file($directory.'/tsconfig.json'))->toBeTrue();
 
-    $viteConfig = (string) file_get_contents($directory.'/vite.config.dcode.ts');
+    $viteConfig = (string) file_get_contents($directory.'/vite.config.ts');
     expect($viteConfig)->toContain('import.meta.dirname')
         ->toContain('vue/dist/vue.esm-bundler.js')
         ->and($viteConfig)->toContain('resources/js/types/index.ts')
@@ -41,9 +42,9 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->toContain('node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.esm.js')
         ->toContain('vite-svg-loader')
         ->toContain('svgLoader()');
-    expect(file_get_contents($directory.'/resources/css/dcode-starter-kit.css'))
+    expect(file_get_contents($directory.'/resources/css/app.css'))
         ->toContain('../../node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.css');
-    expect(file_get_contents($directory.'/resources/js/dcode-starter-kit.ts'))
+    expect(file_get_contents($directory.'/resources/js/app.ts'))
         ->not->toContain('import { trans }');
     expect(file_get_contents($directory.'/resources/js/layouts/App.vue'))
         ->toContain('AppSidebar');
@@ -56,7 +57,7 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->toContain('page.props.navigation?.menu')
         ->not->toContain('admin.users.index')
         ->not->toContain('admin.roles.index');
-    expect(file_get_contents($directory.'/resources/css/dcode-starter-kit.css'))
+    expect(file_get_contents($directory.'/resources/css/app.css'))
         ->toContain('.sidebar__nav--closed .dsg-avatar__info')
         ->toContain('.dsg-avatar__subtext')
         ->toContain('.sidebar .sidebar__nav .sidebar__nav-bottom .dsg-avatar .dsg-avatar__link .dsg-avatar__info .dsg-avatar__title');
@@ -68,9 +69,9 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
     expect($package['devDependencies']['vue'])->toBe('^3.5')
         ->and($package['devDependencies']['@dcodegroup-au/dsg-vue'])->toBe('^1.0.15-next')
         ->and($package['devDependencies']['vite-svg-loader'])->toBe('^5.1.1')
-        ->and($package['scripts']['dev'])->toBe('vite --config vite.config.dcode.ts')
-        ->and($package['scripts']['build'])->toBe('vite build --config vite.config.dcode.ts')
-        ->and($package['scripts']['dcode:build'])->toBe('pnpm run build')
+        ->and($package['scripts']['dev'])->toBe('vite')
+        ->and($package['scripts']['build'])->toBe('vite build')
+        ->and($package['scripts']['typecheck'])->toBe('vue-tsc --noEmit -p tsconfig.json')
         ->and($package['packageManager'])->toBe('pnpm@9.0.0')
         ->and($package['engines']['pnpm'])->toBe('>=9.0.0')
         ->and($package['pnpm'] ?? null)->toBeNull();
@@ -100,6 +101,70 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->not->toContain("require __DIR__.'/dcode-starter-kit.php';");
 });
 
+it('upgrades the default Laravel frontend files to the standard starter entry points', function () {
+    $directory = frontendFixture();
+    mkdir($directory.'/resources/css', 0777, true);
+    mkdir($directory.'/resources/js', 0777, true);
+    file_put_contents($directory.'/resources/css/app.css', "@import 'tailwindcss';\n");
+    file_put_contents($directory.'/resources/js/app.js', "import './bootstrap';\n");
+    file_put_contents($directory.'/vite.config.js', <<<'JS'
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+
+export default defineConfig({
+    plugins: [laravel({
+        input: ['resources/css/app.css', 'resources/js/app.js'],
+        refresh: true,
+    })],
+});
+JS);
+    file_put_contents($directory.'/tsconfig.json', json_encode([
+        'compilerOptions' => ['allowJs' => true],
+        'include' => ['resources/js/**/*.js'],
+    ], JSON_PRETTY_PRINT)."\n");
+
+    expect((new InstallDcodeStarterKitFrontend(fn () => true))->install($directory, fn () => null))->toBeTrue()
+        ->and(is_file($directory.'/vite.config.js'))->toBeFalse()
+        ->and(is_file($directory.'/resources/js/app.js'))->toBeFalse()
+        ->and(file_get_contents($directory.'/resources/js/app.ts'))->toContain('createInertiaApp')
+        ->and(json_decode((string) file_get_contents($directory.'/tsconfig.json'), true)['compilerOptions']['allowJs'])->toBeTrue()
+        ->and(file_get_contents($directory.'/vite.config.ts'))->toContain('resources/js/app.ts');
+});
+
+it('replaces an existing application stylesheet with the starter stylesheet', function () {
+    $directory = frontendFixture();
+    mkdir($directory.'/resources/css', 0777, true);
+    file_put_contents($directory.'/resources/css/app.css', '/* Laravel application styles */');
+
+    expect((new InstallDcodeStarterKitFrontend(fn () => true))->install($directory, fn () => null))->toBeTrue()
+        ->and(file_get_contents($directory.'/resources/css/app.css'))
+        ->toContain('@import "tailwindcss";')
+        ->toContain('dsg-vue');
+});
+
+it('migrates its older special frontend filenames', function () {
+    $directory = frontendFixture();
+    mkdir($directory.'/resources/css', 0777, true);
+    mkdir($directory.'/resources/js', 0777, true);
+    file_put_contents($directory.'/resources/css/dcode-starter-kit.css', "@import \"tailwindcss\";\n@import \"../../node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.css\";\n");
+    file_put_contents($directory.'/resources/js/dcode-starter-kit.ts', "import { createInertiaApp } from '@inertiajs/vue3';\nimport \"../css/dcode-starter-kit.css\";\n");
+    file_put_contents($directory.'/vite.config.dcode.ts', "import laravel from 'laravel-vite-plugin';\nexport default { plugins: [laravel({ input: ['resources/css/dcode-starter-kit.css'] })] };\n");
+    file_put_contents($directory.'/tsconfig.dcode.json', json_encode([
+        'compilerOptions' => ['types' => ['vite/client']],
+        'include' => ['resources/**/*.vue'],
+    ], JSON_PRETTY_PRINT)."\n");
+
+    expect((new InstallDcodeStarterKitFrontend(fn () => true))->install($directory, fn () => null))->toBeTrue()
+        ->and(is_file($directory.'/resources/css/dcode-starter-kit.css'))->toBeFalse()
+        ->and(is_file($directory.'/resources/js/dcode-starter-kit.ts'))->toBeFalse()
+        ->and(is_file($directory.'/vite.config.dcode.ts'))->toBeFalse()
+        ->and(is_file($directory.'/tsconfig.dcode.json'))->toBeFalse()
+        ->and(is_file($directory.'/resources/css/app.css'))->toBeTrue()
+        ->and(is_file($directory.'/resources/js/app.ts'))->toBeTrue()
+        ->and(is_file($directory.'/vite.config.ts'))->toBeTrue()
+        ->and(is_file($directory.'/tsconfig.json'))->toBeTrue();
+});
+
 it('rejects a conflicting package manager', function () {
     $directory = frontendFixture(['name' => 'fixture/app', 'packageManager' => 'yarn@1.22.0']);
     $messages = [];
@@ -113,7 +178,7 @@ it('rejects a conflicting package manager', function () {
 it('refuses to overwrite generated frontend files', function () {
     $directory = frontendFixture();
     mkdir($directory.'/resources/js', 0777, true);
-    file_put_contents($directory.'/resources/js/dcode-starter-kit.ts', 'custom');
+    file_put_contents($directory.'/resources/js/app.ts', 'custom');
     $messages = [];
 
     expect((new InstallDcodeStarterKitFrontend(fn () => true))->install($directory, function (string $message) use (&$messages): void {

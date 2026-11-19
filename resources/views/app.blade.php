@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title inertia>{{ config('app.name', 'Laravel') }}</title>
     @routes
-    @vite(['resources/css/dcode-starter-kit.css', 'resources/js/dcode-starter-kit.ts'])
+    @vite(['resources/css/app.css', 'resources/js/app.ts'])
     @inertiaHead
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased">

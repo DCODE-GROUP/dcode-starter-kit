@@ -52,6 +52,9 @@ class InstallDcodeStarterKitFrontend
             if (! is_file($workingDirectory.'/package.json')) {
                 throw new RuntimeException('No package.json was found. Create a frontend package manifest, then rerun dcode:install.');
             }
+            $this->migrateLegacyFrontendFiles($workingDirectory);
+            $this->prepareStandardViteConfig($workingDirectory);
+            $this->mergeTypescriptConfig($workingDirectory);
             $this->assertNoConflict($workingDirectory);
             $this->copyFrontend($workingDirectory);
             $this->registerHostRoutes($workingDirectory);
@@ -80,11 +83,148 @@ class InstallDcodeStarterKitFrontend
         }
     }
 
+    private function migrateLegacyFrontendFiles(string $workingDirectory): void
+    {
+        foreach ([
+            'resources/css/dcode-starter-kit.css' => 'resources/css/app.css',
+            'resources/js/dcode-starter-kit.ts' => 'resources/js/app.ts',
+            'vite.config.dcode.ts' => 'vite.config.ts',
+            'tsconfig.dcode.json' => 'tsconfig.json',
+        ] as $legacyRelative => $standardRelative) {
+            $legacy = $workingDirectory.'/'.$legacyRelative;
+
+            if (! is_file($legacy)) {
+                continue;
+            }
+
+            if (! $this->isLegacyGeneratedFile($legacyRelative, $legacy)) {
+                throw new RuntimeException("Refusing to migrate customised {$legacyRelative}. Review it and remove or rename it before rerunning dcode:install.");
+            }
+
+            $standard = $workingDirectory.'/'.$standardRelative;
+
+            if (is_file($standard) && ! $this->isLegacyGeneratedFile($standardRelative, $standard)) {
+                throw new RuntimeException("Refusing to replace customised {$standardRelative} while migrating {$legacyRelative}. Review both files before rerunning dcode:install.");
+            }
+
+            if (! is_file($standard)) {
+                copy($legacy, $standard);
+            }
+
+            unlink($legacy);
+        }
+    }
+
+    private function prepareStandardViteConfig(string $workingDirectory): void
+    {
+        $legacyDefault = $workingDirectory.'/vite.config.js';
+
+        if (is_file($legacyDefault)) {
+            $contents = file_get_contents($legacyDefault);
+
+            if (! is_string($contents)) {
+                throw new RuntimeException('Unable to read vite.config.js.');
+            }
+
+            $isDefault = str_contains($contents, 'laravel-vite-plugin')
+                && str_contains($contents, 'resources/css/app.css')
+                && str_contains($contents, 'resources/js/app.js')
+                && ! str_contains($contents, '@dcodegroup-au');
+
+            if (! $isDefault) {
+                throw new RuntimeException('A customised vite.config.js already exists. Rename or merge it into vite.config.ts before rerunning dcode:install.');
+            }
+
+            unlink($legacyDefault);
+        }
+
+        $defaultApp = $workingDirectory.'/resources/js/app.js';
+
+        if (is_file($defaultApp)) {
+            $contents = file_get_contents($defaultApp);
+
+            if (! is_string($contents)) {
+                throw new RuntimeException('Unable to read resources/js/app.js.');
+            }
+
+            if (str_contains($contents, "import './bootstrap'") || str_contains($contents, 'import "./bootstrap"')) {
+                unlink($defaultApp);
+            }
+        }
+    }
+
+    private function mergeTypescriptConfig(string $workingDirectory): void
+    {
+        $path = $workingDirectory.'/tsconfig.json';
+
+        if (! is_file($path)) {
+            return;
+        }
+
+        $sourcePath = dirname(__DIR__, 2).'/resources/frontend/tsconfig.json';
+        $existing = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+        $required = json_decode((string) file_get_contents($sourcePath), true, 512, JSON_THROW_ON_ERROR);
+
+        if (! is_array($existing) || ! is_array($required)) {
+            throw new RuntimeException('tsconfig.json must contain a JSON object.');
+        }
+
+        $existingCompilerOptions = is_array($existing['compilerOptions'] ?? null) ? $existing['compilerOptions'] : [];
+        $requiredCompilerOptions = is_array($required['compilerOptions'] ?? null) ? $required['compilerOptions'] : [];
+        $existingPaths = is_array($existingCompilerOptions['paths'] ?? null) ? $existingCompilerOptions['paths'] : [];
+        $requiredPaths = is_array($requiredCompilerOptions['paths'] ?? null) ? $requiredCompilerOptions['paths'] : [];
+
+        $existing['compilerOptions'] = array_merge($existingCompilerOptions, $requiredCompilerOptions, [
+            'paths' => array_merge($existingPaths, $requiredPaths),
+        ]);
+        $existing['include'] = array_values(array_unique(array_merge(
+            is_array($existing['include'] ?? null) ? $existing['include'] : [],
+            is_array($required['include'] ?? null) ? $required['include'] : [],
+        )));
+
+        file_put_contents($path, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n");
+    }
+
+    private function isMergeableTypescriptConfig(string $target): bool
+    {
+        try {
+            $contents = file_get_contents($target);
+
+            if (! is_string($contents)) {
+                return false;
+            }
+
+            $config = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+
+            return is_array($config) && is_array($config['compilerOptions'] ?? null);
+        } catch (JsonException) {
+            return false;
+        }
+    }
+
+    private function isStarterTypescriptConfig(string $contents): bool
+    {
+        try {
+            $config = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
+            $include = is_array($config['include'] ?? null) ? $config['include'] : [];
+            $types = is_array($config['compilerOptions']['types'] ?? null) ? $config['compilerOptions']['types'] : [];
+
+            return in_array('resources/**/*.vue', $include, true)
+                && in_array('vite/client', $types, true);
+        } catch (JsonException) {
+            return false;
+        }
+    }
+
     private function assertNoConflict(string $workingDirectory): void
     {
         $conflicts = [];
         foreach ($this->frontendSourceFiles() as $relative => $source) {
             $target = $workingDirectory.'/'.$relative;
+
+            if ($relative === 'resources/css/app.css') {
+                continue;
+            }
 
             if (is_file($target) && ! $this->filesMatch($source, $target) && ! $this->isLegacyGeneratedFile($relative, $target)) {
                 $conflicts[] = $relative;
@@ -131,11 +271,25 @@ class InstallDcodeStarterKitFrontend
         foreach ($this->frontendSourceFiles() as $relative => $source) {
             $target = $workingDirectory.'/'.$relative;
 
+            if ($relative === 'tsconfig.json' && is_file($target) && $this->isMergeableTypescriptConfig($target)) {
+                continue;
+            }
+
+            if ($relative === 'resources/css/app.css' && is_file($target)) {
+                copy($source, $target);
+
+                continue;
+            }
+
             if (! is_dir(dirname($target))) {
                 mkdir(dirname($target), 0755, true);
             }
 
             if (is_file($target) && ! $this->filesMatch($source, $target) && ! $this->isLegacyGeneratedFile($relative, $target)) {
+                if ($relative === 'tsconfig.json' && $this->isMergeableTypescriptConfig($target)) {
+                    continue;
+                }
+
                 throw new RuntimeException("Refusing to overwrite {$relative}.");
             }
 
@@ -177,12 +331,11 @@ class InstallDcodeStarterKitFrontend
         }
 
         return match ($relative) {
-            'vite.config.dcode.ts' => str_contains($contents, 'laravel-vite-plugin')
-                && str_contains($contents, 'dcode-starter-kit.css'),
-            'tsconfig.dcode.json' => str_contains($contents, 'resources/**/*.vue')
-                && str_contains($contents, 'vite/client'),
-            'resources/css/dcode-starter-kit.css' => str_contains($contents, '@import "tailwindcss";')
-                && str_contains($contents, 'dsg-vue'),
+            'vite.config.ts', 'vite.config.dcode.ts' => str_contains($contents, 'laravel-vite-plugin')
+                && (str_contains($contents, 'resources/css/app.css') || str_contains($contents, 'dcode-starter-kit.css')),
+            'tsconfig.json', 'tsconfig.dcode.json' => $this->isStarterTypescriptConfig($contents),
+            'resources/css/app.css', 'resources/css/dcode-starter-kit.css' => (str_contains($contents, '@import "tailwindcss";')
+                && str_contains($contents, 'dsg-vue')) || trim($contents) === "@import 'tailwindcss';",
             'resources/js/pages/Auth/ResetPassword.vue' => str_contains($contents, '@inertiajs/vue3')
                 && str_contains($contents, 'AuthLayout'),
             'resources/js/pages/Auth/Login.vue',
@@ -201,8 +354,8 @@ class InstallDcodeStarterKitFrontend
                 || str_contains($contents, 'admin.dashboard'),
             'resources/js/layouts/Auth.vue' => str_contains($contents, 'auth__container')
                 && str_contains($contents, '@inertiajs/vue3'),
-            'resources/js/dcode-starter-kit.ts' => str_contains($contents, 'createInertiaApp')
-                && str_contains($contents, 'dcode-starter-kit.css'),
+            'resources/js/app.ts', 'resources/js/dcode-starter-kit.ts' => str_contains($contents, 'createInertiaApp')
+                && (str_contains($contents, 'resources/js/app.ts') || str_contains($contents, 'dcode-starter-kit.css')),
             'app/Http/Middleware/HandleDcodeInertiaRequests.php' => str_contains($contents, 'protected $rootView')
                 && str_contains($contents, 'dcode-starter-kit::app'),
             'app/Http/Controllers/DashboardController.php',
@@ -260,10 +413,18 @@ class InstallDcodeStarterKitFrontend
         }
 
         $package['scripts'] = is_array($package['scripts'] ?? null) ? $package['scripts'] : [];
-        $package['scripts']['dev'] = 'vite --config vite.config.dcode.ts';
-        $package['scripts']['build'] = 'vite build --config vite.config.dcode.ts';
-        $package['scripts']['dcode:build'] ??= 'pnpm run build';
-        $package['scripts']['dcode:typecheck'] ??= 'vue-tsc --noEmit -p tsconfig.dcode.json';
+        $package['scripts']['dev'] = 'vite';
+        $package['scripts']['build'] = 'vite build';
+
+        if (($package['scripts']['dcode:build'] ?? null) === 'pnpm run build') {
+            unset($package['scripts']['dcode:build']);
+        }
+
+        if (($package['scripts']['dcode:typecheck'] ?? null) === 'vue-tsc --noEmit -p tsconfig.dcode.json') {
+            unset($package['scripts']['dcode:typecheck']);
+        }
+
+        $package['scripts']['typecheck'] ??= 'vue-tsc --noEmit -p tsconfig.json';
 
         file_put_contents($path, json_encode($package, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n");
     }

@@ -6,7 +6,7 @@ import svgLoader from "vite-svg-loader";
 import { resolve } from "node:path";
 
 export default defineConfig({
-  plugins: [laravel({ input: ["resources/css/dcode-starter-kit.css", "resources/js/dcode-starter-kit.ts"] }), tailwindcss(), vue(), svgLoader()],
+  plugins: [laravel({ input: ["resources/css/app.css", "resources/js/app.ts"] }), tailwindcss(), vue(), svgLoader()],
   resolve: {
     alias: {
       vue: resolve(import.meta.dirname, "node_modules/vue/dist/vue.esm-bundler.js"),
