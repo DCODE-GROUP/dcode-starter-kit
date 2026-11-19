@@ -203,6 +203,8 @@ class InstallDcodeStarterKitFrontend
                 && str_contains($contents, '@inertiajs/vue3'),
             'resources/js/dcode-starter-kit.ts' => str_contains($contents, 'createInertiaApp')
                 && str_contains($contents, 'dcode-starter-kit.css'),
+            'app/Http/Middleware/HandleDcodeInertiaRequests.php' => str_contains($contents, 'protected $rootView')
+                && str_contains($contents, 'dcode-starter-kit::app'),
             'app/Http/Controllers/DashboardController.php',
             'app/Http/Controllers/Auth/AuthenticatedSessionController.php',
             'app/Http/Controllers/Auth/NewPasswordController.php' => str_contains($contents, 'namespace App\\Http\\Controllers')

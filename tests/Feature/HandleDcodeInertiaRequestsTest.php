@@ -9,7 +9,9 @@ it('ships the inertia middleware as host application code', function () {
     expect($contents)->toBeString()
         ->and($contents)->toContain('namespace App\\Http\\Middleware;')
         ->and($contents)->toContain('protected $rootView')
-        ->and($contents)->toContain("'dcode-starter-kit::app'");
+        ->and($contents)->toContain("'dcode-starter-kit::app'")
+        ->and($contents)->toContain('DcodeStarterKitNavigation')
+        ->and(is_file(__DIR__.'/../../resources/frontend/app/Services/DcodeStarterKitNavigation.php'))->toBeTrue();
 });
 
 it('ships split host controllers for the frontend foundation', function () {

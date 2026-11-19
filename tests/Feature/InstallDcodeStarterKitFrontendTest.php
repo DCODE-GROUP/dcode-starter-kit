@@ -30,6 +30,7 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->and($calls[1][0])->toBe(['pnpm', 'run', 'build'])
         ->and(is_file($directory.'/resources/js/dcode-starter-kit.ts'))->toBeTrue()
         ->and(is_file($directory.'/resources/js/components/Navigation/AppSidebar.vue'))->toBeTrue()
+        ->and(is_file($directory.'/app/Services/DcodeStarterKitNavigation.php'))->toBeTrue()
         ->and(is_file($directory.'/vite.config.dcode.ts'))->toBeTrue();
 
     $viteConfig = (string) file_get_contents($directory.'/vite.config.dcode.ts');
@@ -52,8 +53,9 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->toContain('sidebar__submenu')
         ->toContain('hasActiveSubmenu')
         ->toContain('isNavOpen')
-        ->toContain('admin.users.index')
-        ->toContain('admin.roles.index');
+        ->toContain('page.props.navigation?.menu')
+        ->not->toContain('admin.users.index')
+        ->not->toContain('admin.roles.index');
     expect(file_get_contents($directory.'/resources/css/dcode-starter-kit.css'))
         ->toContain('.sidebar__nav--closed .dsg-avatar__info')
         ->toContain('.dsg-avatar__subtext')

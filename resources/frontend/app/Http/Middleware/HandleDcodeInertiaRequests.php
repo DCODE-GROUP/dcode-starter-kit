@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Services\DcodeStarterKitNavigation;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -13,6 +14,8 @@ class HandleDcodeInertiaRequests extends Middleware
     protected $rootView = 'dcode-starter-kit::app'; // @pest-ignore-type
 
     /** @return array<string, mixed> */
+    public function __construct(private readonly DcodeStarterKitNavigation $navigation) {}
+
     public function share(Request $request): array
     {
         return [
@@ -28,6 +31,10 @@ class HandleDcodeInertiaRequests extends Middleware
                 'dashboard' => trans('dcode-starter-kit::messages.dashboard'),
                 'account' => trans('dcode-starter-kit::messages.account'),
                 'navigation' => trans('dcode-starter-kit::messages.navigation'),
+            ],
+            'navigation' => [
+                'menu' => fn () => $this->navigation->menu($request),
+                'profile' => fn () => $this->navigation->profile($request),
             ],
         ];
     }
