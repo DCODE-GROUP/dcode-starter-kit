@@ -87,6 +87,7 @@ it('installs runtime and development dependencies with Composer from the applica
                 'require',
                 'bugsnag/bugsnag-laravel',
                 'dcodegroup/activity-log',
+                'dcodegroup/laravel-dsg-table',
                 'dcodegroup/laravel-attachments-backend',
                 'laravel/fortify',
                 'laravel/sanctum',

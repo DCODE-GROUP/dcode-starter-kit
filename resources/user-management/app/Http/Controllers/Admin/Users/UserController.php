@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\User\StoreRequest;
 use App\Http\Requests\Admin\User\UpdateRequest;
 use App\Models\Role;
 use App\Models\User;
+use Dcodegroup\LaravelDsgTable\Facades\DsgTable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -21,7 +22,7 @@ class UserController extends Controller
         Gate::authorize('viewAny', User::class);
 
         return Inertia::render('Admin/Users/Index', [
-            'users' => User::query()->with('roles')->orderBy('last_name')->orderBy('first_name')->paginate(15),
+            'fields' => DsgTable::fields('users'),
             'status' => $request->session()->get('status'),
         ]);
     }

@@ -10,6 +10,7 @@ export default defineConfig({
   resolve: {
     alias: {
       vue: resolve(import.meta.dirname, "node_modules/vue/dist/vue.esm-bundler.js"),
+      "@dsg/table": resolve(import.meta.dirname, "node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.table.esm.js"),
       "@dsg": resolve(import.meta.dirname, "node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.esm.js"),
       "@components": resolve(import.meta.dirname, "resources/js/components"),
       "@composables": resolve(import.meta.dirname, "resources/js/composables"),

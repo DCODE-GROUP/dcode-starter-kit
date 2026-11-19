@@ -75,6 +75,13 @@ it('installs permission-based user and role management into the host application
         ->and(file_get_contents($directory.'/app/Models/User.php'))->toContain('use HasRoles;')
         ->and(file_get_contents($directory.'/database/seeders/DatabaseSeeder.php'))->toContain('Dcode Starter Kit database seeder')
         ->and(file_get_contents($directory.'/database/seeders/DatabaseSeeder.php'))->toContain('forge@dcodegroup.com')
+        ->and(is_file($directory.'/app/Tables/UsersTable.php'))->toBeTrue()
+        ->and(is_file($directory.'/app/Tables/RolesTable.php'))->toBeTrue()
+        ->and(file_get_contents($directory.'/app/Tables/UsersTable.php'))->toContain("SlotColumn::make('full_name', 'Name')->isSortable(false)->toArray()")
+        ->and(file_get_contents($directory.'/app/Tables/RolesTable.php'))->toContain("Column::make('name', 'Name')->isSortable()->toArray()")
+        ->and(file_get_contents($directory.'/resources/js/pages/Admin/Users/Index.vue'))->toContain('DsgTable')
+        ->and(file_get_contents($directory.'/resources/js/pages/Admin/Roles/Index.vue'))->toContain('DsgTable')
+        ->and(file_get_contents($directory.'/routes/web.php'))->toContain('DsgTable\\Http\\Controllers\\TableController')
         ->and(file_get_contents($directory.'/routes/web.php'))->toContain("Route::resource('users', UserController::class)");
 });
 
@@ -96,6 +103,22 @@ it('can be rerun after user management setup is complete', function () {
 
     expect($setup->setup($directory, fn () => null))->toBeTrue()
         ->and($setup->setup($directory, fn () => null))->toBeTrue();
+});
+
+it('adds DSG table routes to an earlier user management installation', function () {
+    $directory = userManagementFixture();
+    $setup = new SetupUserManagement;
+
+    expect($setup->setup($directory, fn () => null))->toBeTrue();
+
+    $path = $directory.'/routes/web.php';
+    $routes = (string) file_get_contents($path);
+    $routes = preg_replace('/\/\/ Dcode Starter Kit DSG table routes.*?\n\}\);\n/s', '', $routes) ?? $routes;
+    file_put_contents($path, $routes);
+
+    expect($setup->setup($directory, fn () => null))->toBeTrue()
+        ->and(file_get_contents($path))->toContain('// Dcode Starter Kit DSG table routes')
+        ->and(substr_count((string) file_get_contents($path), "->name('dsg-table')"))->toBe(1);
 });
 
 it('refuses to replace a customized database seeder', function () {

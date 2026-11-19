@@ -4,58 +4,56 @@
       <DsgButton v-if="canCreate" :uri="route('admin.users.create')" label="Add user" />
     </template>
 
-    <div class="rounded-lg bg-white p-4 shadow-sm">
-      <table class="w-full text-left text-sm">
-        <thead class="border-b border-gray-200 text-xs uppercase text-gray-500">
-          <tr>
-            <th class="px-3 py-3">Name</th>
-            <th class="px-3 py-3">Email</th>
-            <th class="px-3 py-3">Roles</th>
-            <th class="px-3 py-3">Status</th>
-            <th class="px-3 py-3" />
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="user in users.data" :key="user.id" class="border-b border-gray-100 last:border-0">
-            <td class="px-3 py-3 font-medium">{{ displayName(user) }}</td>
-            <td class="px-3 py-3">{{ user.email }}</td>
-            <td class="px-3 py-3">{{ user.roles.map((role) => role.name).join(', ') || '—' }}</td>
-            <td class="px-3 py-3">{{ user.active ? 'Active' : 'Inactive' }}</td>
-            <td class="px-3 py-3 text-right">
-              <DsgButton v-if="canUpdate || user.id === currentUserId" :uri="route('admin.users.edit', user.id)" label="Edit" theme="brand-link" size="sm" />
-              <DsgButton v-if="canDelete && user.id !== currentUserId" type="button" label="Delete" theme="danger-link" size="sm" @button-clicked="remove(user.id)" />
-            </td>
-          </tr>
-          <tr v-if="users.data.length === 0">
-            <td colspan="5" class="px-3 py-8 text-center text-gray-500">No users found.</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="flex flex-1 flex-col overflow-hidden px-4 pb-4">
+      <DsgTable
+        ref="dsgTableRef"
+        :fields="fields"
+        :get-url="route('dsg-table', { tableName: 'users' })"
+        :filter-endpoint="route('dsg-table.filters', { tableName: 'users' })"
+        :has-header="false"
+        class="flex-1"
+      >
+        <template #dsg-table--search-header>
+          <DsgTableSearch name="term" @dsg-table:term-changed="handleTermChanged" />
+        </template>
+
+        <template #dsg-field--full_name="slotProps">
+          <span class="font-medium text-gray-900">{{ slotProps.rowData.full_name }}</span>
+        </template>
+
+        <template #dsg-field--roles="slotProps">
+          <div class="flex flex-wrap items-center justify-start gap-1">
+            <DsgBadge v-for="role in slotProps.rowData.roles" :key="role.id" :label="role.name" theme="badge-color" theme-color="gray" size="sm" />
+            <span v-if="!slotProps.rowData.roles.length">—</span>
+          </div>
+        </template>
+
+        <template #dsg-field--active="slotProps">
+          <DsgBadge :label="slotProps.rowData.active ? 'Active' : 'Inactive'" theme="badge-color" :theme-color="slotProps.rowData.active ? 'green' : 'gray'" size="sm" />
+        </template>
+
+        <template #dsg-table--footer-left-extras="slotProps">
+          <DsgTablePerPage :per-page="slotProps.perPage" />
+        </template>
+      </DsgTable>
     </div>
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { router, usePage } from "@inertiajs/vue3";
-import { DsgButton } from "@dcodegroup-au/dsg-vue";
+import { useTemplateRef } from "vue";
+import { usePage } from "@inertiajs/vue3";
+import { DsgTable, DsgTablePerPage, DsgTableSearch } from "@dsg/table";
+import { DsgBadge, DsgButton } from "@dsg";
 import { route } from "ziggy-js";
 import AppLayout from "@layouts/App.vue";
 
-interface Role { id: number; name: string }
-interface User { id: number; first_name?: string; middle_name?: string; last_name?: string; email: string; active: boolean; roles: Role[] }
-interface PaginatedUsers { data: User[] }
-
-const props = defineProps<{ users: PaginatedUsers }>();
-const page = usePage<{ auth: { user: { id: number }; permissions?: string[] } }>();
-const permissions = page.props.auth.permissions ?? [];
-const currentUserId = page.props.auth.user.id;
+const props = defineProps<{ fields: Record<string, unknown>[] }>();
+const permissions = usePage<{ auth: { permissions?: string[] } }>().props.auth.permissions ?? [];
+const fields = props.fields;
 const canCreate = permissions.includes("admin-portal-users-create");
-const canUpdate = permissions.includes("admin-portal-users-update");
-const canDelete = permissions.includes("admin-portal-users-delete");
-const users = props.users;
-
-const displayName = (user: User): string => [user.first_name, user.middle_name, user.last_name].filter(Boolean).join(" ") || user.email;
-const remove = (id: number): void => {
-  if (window.confirm("Delete this user?")) router.delete(route("admin.users.destroy", id));
+const dsgTableRef = useTemplateRef<InstanceType<typeof DsgTable>>("dsgTableRef");
+const handleTermChanged = (term: string | null): void => {
+  dsgTableRef.value?.termChanged?.(term);
 };
 </script>

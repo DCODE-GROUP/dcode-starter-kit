@@ -34,6 +34,9 @@
 
 body { min-width: 320px; }
 
+/* DSG table field classes are returned by the backend at runtime. Keep the utilities in the scan graph. */
+@source inline("px-3 py-4 text-sm text-gray-500 wrap-break-word");
+
 /* Shared application shell conventions used by the Dcode Vue applications. */
 .auth__wrapper { display: flex; flex-direction: column; max-width: 28rem; min-width: min(24rem, calc(100vw - 2rem)); }
 .auth__header { display: flex; align-items: center; justify-content: center; padding: 1rem; }
@@ -75,6 +78,10 @@ body { min-width: 320px; }
 .sidebar__nav-bottom .dsg-avatar__title { @apply text-white; }
 .sidebar__nav-bottom .dsg-avatar__subtext { @apply text-brand-secondary-100; }
 .sidebar__nav-bottom .dsg-avatar:hover .dsg-avatar__title, .sidebar__nav-bottom .dsg-avatar:hover .dsg-avatar__subtext { @apply text-brand-secondary-100; }
+.sidebar .sidebar__nav .sidebar__nav-bottom .dsg-avatar .dsg-avatar__link .dsg-avatar__info .dsg-avatar__title { @apply text-white; }
+.sidebar .sidebar__nav .sidebar__nav-bottom .dsg-avatar .dsg-avatar__link .dsg-avatar__info .dsg-avatar__subtext { @apply text-brand-secondary-100; }
+.sidebar .sidebar__nav .sidebar__nav-bottom .dsg-avatar:hover .dsg-avatar__link .dsg-avatar__info .dsg-avatar__title,
+.sidebar .sidebar__nav .sidebar__nav-bottom .dsg-avatar:hover .dsg-avatar__link .dsg-avatar__info .dsg-avatar__subtext { @apply text-brand-secondary-100; }
 .sidebar__submenu { @apply flex h-full w-64 shrink-0 flex-col gap-4 bg-brand-900 py-4; }
 .sidebar__submenu-title { @apply px-4 text-lg font-semibold text-white; }
 .sidebar__submenu-nav-list { @apply flex flex-col gap-1 overflow-auto px-4; }

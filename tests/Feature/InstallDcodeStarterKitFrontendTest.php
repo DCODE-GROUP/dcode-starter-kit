@@ -36,6 +36,7 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
     expect($viteConfig)->toContain('import.meta.dirname')
         ->toContain('vue/dist/vue.esm-bundler.js')
         ->and($viteConfig)->toContain('resources/js/types/index.ts')
+        ->toContain('dsg-vue.table.esm.js')
         ->toContain('node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.esm.js')
         ->toContain('vite-svg-loader')
         ->toContain('svgLoader()');
@@ -55,7 +56,8 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->toContain('admin.roles.index');
     expect(file_get_contents($directory.'/resources/css/dcode-starter-kit.css'))
         ->toContain('.sidebar__nav--closed .dsg-avatar__info')
-        ->toContain('.dsg-avatar__subtext');
+        ->toContain('.dsg-avatar__subtext')
+        ->toContain('.sidebar .sidebar__nav .sidebar__nav-bottom .dsg-avatar .dsg-avatar__link .dsg-avatar__info .dsg-avatar__title');
     expect(file_get_contents($directory.'/resources/js/pages/Auth/Login.vue'))
         ->toContain('auth__content-actions')
         ->toContain('DsgCheckbox');

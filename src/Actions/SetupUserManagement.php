@@ -16,6 +16,8 @@ class SetupUserManagement
 
     private const string ROUTE_MARKER = '// Dcode Starter Kit user and role management routes';
 
+    private const string TABLE_ROUTE_MARKER = '// Dcode Starter Kit DSG table routes';
+
     /** @param callable(string): void $output */
     public function setup(string $workingDirectory, callable $output): bool
     {
@@ -56,11 +58,13 @@ class SetupUserManagement
             $target = $workingDirectory.'/'.$relative;
 
             if (is_file($target)) {
-                if (file_get_contents($target) !== file_get_contents($file->getPathname())) {
-                    throw new RuntimeException("Refusing to overwrite customised {$relative}.");
+                if (file_get_contents($target) === file_get_contents($file->getPathname())) {
+                    continue;
                 }
 
-                continue;
+                if (! $this->isGeneratedScaffold($relative, $target)) {
+                    throw new RuntimeException("Refusing to overwrite customised {$relative}.");
+                }
             }
 
             if (! is_dir(dirname($target)) && ! mkdir(dirname($target), 0755, true) && ! is_dir(dirname($target))) {
@@ -71,6 +75,31 @@ class SetupUserManagement
                 throw new RuntimeException("Unable to create {$relative}.");
             }
         }
+    }
+
+    private function isGeneratedScaffold(string $relative, string $target): bool
+    {
+        $contents = file_get_contents($target);
+
+        if (! is_string($contents)) {
+            return false;
+        }
+
+        return match ($relative) {
+            'resources/js/pages/Admin/Users/Index.vue' => str_contains($contents, '<table')
+                && str_contains($contents, 'admin.users.index'),
+            'resources/js/pages/Admin/Roles/Index.vue' => str_contains($contents, '<table')
+                && str_contains($contents, 'admin.roles.index'),
+            'app/Http/Controllers/Admin/Users/UserController.php' => str_contains($contents, "Inertia::render('Admin/Users/Index'")
+                && str_contains($contents, 'Gate::authorize'),
+            'app/Http/Controllers/Admin/Roles/RoleController.php' => str_contains($contents, "Inertia::render('Admin/Roles/Index'")
+                && str_contains($contents, 'Gate::authorize'),
+            'app/Tables/UsersTable.php' => str_contains($contents, 'class UsersTable')
+                && str_contains($contents, 'CrudActions::for($model, \'admin.users\')'),
+            'app/Tables/RolesTable.php' => str_contains($contents, 'class RolesTable')
+                && str_contains($contents, 'CrudActions::for($model, \'admin.roles\')'),
+            default => false,
+        };
     }
 
     private function registerProvider(string $workingDirectory): void
@@ -189,11 +218,7 @@ class SetupUserManagement
         $path = $workingDirectory.'/routes/web.php';
         $contents = $this->read($path, 'routes/web.php');
 
-        if (str_contains($contents, self::ROUTE_MARKER)) {
-            return;
-        }
-
-        if (str_contains($contents, "Route::resource('users'") || str_contains($contents, "Route::resource('roles'")) {
+        if (! str_contains($contents, self::ROUTE_MARKER) && (str_contains($contents, "Route::resource('users'") || str_contains($contents, "Route::resource('roles'"))) {
             throw new RuntimeException('Existing users or roles routes were found in routes/web.php. Review them before adding the starter management routes.');
         }
 
@@ -201,6 +226,8 @@ class SetupUserManagement
             'App\\Http\\Controllers\\Admin\\Roles\\RoleController',
             'App\\Http\\Controllers\\Admin\\Users\\UserController',
             'App\\Http\\Middleware\\HandleDcodeInertiaRequests',
+            'Dcodegroup\\LaravelDsgTable\\Http\\Controllers\\TableController',
+            'Dcodegroup\\LaravelDsgTable\\Http\\Controllers\\TableFiltersController',
             'Illuminate\\Support\\Facades\\Route',
         ];
         $missingImports = '';
@@ -215,7 +242,29 @@ class SetupUserManagement
             $contents = preg_replace('/(<\?php\s*)/', "$1\n{$missingImports}", $contents, 1) ?? $contents;
         }
 
-        $routes = "\n\n".self::ROUTE_MARKER.<<<'PHP'
+        $tableRoutes = "\n\n".self::TABLE_ROUTE_MARKER.<<<'PHP'
+
+Route::middleware([HandleDcodeInertiaRequests::class, 'auth'])->group(function (): void {
+    Route::get('dsg-table/{tableName}/filters/{param?}', TableFiltersController::class)->name('dsg-table.filters');
+    Route::get('dsg-table/{tableName}/{param?}', TableController::class)->name('dsg-table');
+});
+PHP;
+
+        if (str_contains($contents, self::ROUTE_MARKER)) {
+            if (str_contains($contents, self::TABLE_ROUTE_MARKER)) {
+                return;
+            }
+
+            $contents = str_replace(self::ROUTE_MARKER, self::ROUTE_MARKER.$tableRoutes, $contents);
+
+            if (file_put_contents($path, $contents) === false) {
+                throw new RuntimeException('Unable to add starter DSG table routes safely.');
+            }
+
+            return;
+        }
+
+        $routes = "\n\n".self::ROUTE_MARKER.$tableRoutes.<<<'PHP'
 
 Route::middleware([HandleDcodeInertiaRequests::class, 'auth'])
     ->prefix('admin')

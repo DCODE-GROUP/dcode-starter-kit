@@ -40,7 +40,7 @@ The installer publishes the `dcodegroup/activity-log` package migration using it
 
 The installer also integrates the reusable Laravel Attachments backend. It publishes `config/attachments.php`, publishes and configures Spatie Media Library to use the attachment package's media model and path generator, publishes and normalizes the media, media-category, and annotation migrations to `0001_01_01_000004` through `0001_01_01_000006`, and registers the authenticated attachment routes. It creates a host `AttachmentServiceProvider`, a generic `MediaPolicy`, and adds `HasMediaUser` plus `getMediaUserName()` to the host `User` model. The policy permits authenticated viewing, creation, and updates; destructive actions require an existing host `isAdmin()` method. Review that policy and customize it for the application's authorization model. The attachment backend requires the PHP `imagick` extension. The installer does not provide product-specific attachment screens, categories, annotation workflows, storage credentials, or tenancy rules.
 
-The installer also adds basic permission-based users and roles management. It creates host-owned controllers, form requests, policies, a `Role` model, a management provider, and DSG-based users/roles screens. The generated permissions are `admin-portal-users-*` and `admin-portal-roles-permissions-*` for list/view/create/update/delete operations. It replaces the fresh Laravel `DatabaseSeeder` with the starter seeding logic; running `php artisan db:seed` creates those permissions, an `Admin` role with all of them, and the verified active bootstrap user `forge@dcodegroup.com` with password `Dcode123!!`. Customized `DatabaseSeeder` files are not overwritten. Change or remove that bootstrap credential before using the application outside local development. The screens intentionally omit Embedded Health's user types, facilities, pharmacist data, custom profile fields, welcome-email workflows, and tenancy-specific behavior.
+The installer also adds basic permission-based users and roles management. It installs `dcodegroup/laravel-dsg-table`, creates host-owned controllers, form requests, policies, table classes, API resources, a `Role` model, a management provider, and DSG-based users/roles screens. The index screens use `DsgTable` with authenticated host routes and server-side pagination, sorting, searching, and row actions. The generated permissions are `admin-portal-users-*` and `admin-portal-roles-permissions-*` for list/view/create/update/delete operations. It replaces the fresh Laravel `DatabaseSeeder` with the starter seeding logic; running `php artisan db:seed` creates those permissions, an `Admin` role with all of them, and the verified active bootstrap user `forge@dcodegroup.com` with password `Dcode123!!`. Customized `DatabaseSeeder` files are not overwritten. Change or remove that bootstrap credential before using the application outside local development. The screens intentionally omit Embedded Health's user types, facilities, pharmacist data, custom profile fields, welcome-email workflows, and tenancy-specific behavior.
 
 The supported starting point is a Laravel 12 or 13 application with a `package.json` and pnpm available. The installer configures `packageManager` and the pnpm engine, allows the required DSG Vue build script through `pnpm-workspace.yaml`'s `allowBuilds` setting, adds frontend dependencies including the private `@dcodegroup-au/dsg-vue` component library, and configures both `pnpm run dev` and `pnpm run build` to use the generated Vite config. It then runs `pnpm install` followed by `pnpm run build`. An existing yarn or npm `packageManager` declaration is reported as a conflict rather than silently changed. Configure the DCode npm registry and credentials in the host project before installing; credentials are never copied by this package.
 
@@ -50,6 +50,7 @@ The command adds these regular Composer dependencies:
 
 - `bugsnag/bugsnag-laravel`
 - `dcodegroup/activity-log`
+- `dcodegroup/laravel-dsg-table`
 - `dcodegroup/laravel-attachments-backend`
 - `laravel/fortify`
 - `laravel/sanctum`
@@ -63,7 +64,7 @@ The command adds these regular Composer dependencies:
 - `tightenco/ziggy`
 - `inertiajs/inertia-laravel`
 
-The attachment backend also requires its own transitive private/public Composer dependencies and the PHP `imagick` extension. Configure the required Composer repositories and credentials in the host project before running the installer; this package never copies registry credentials.
+The attachment backend and `dcodegroup/laravel-dsg-table` require their own Composer repositories and credentials. Configure the required private/public Composer repositories in the host project before running the installer; this package never copies registry credentials.
 
 It adds this development dependency:
 

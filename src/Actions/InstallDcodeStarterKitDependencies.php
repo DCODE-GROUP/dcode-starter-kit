@@ -16,6 +16,7 @@ class InstallDcodeStarterKitDependencies
     private const array RUNTIME_DEPENDENCIES = [
         'bugsnag/bugsnag-laravel',
         'dcodegroup/activity-log',
+        'dcodegroup/laravel-dsg-table',
         'dcodegroup/laravel-attachments-backend',
         'laravel/fortify',
         'laravel/sanctum',

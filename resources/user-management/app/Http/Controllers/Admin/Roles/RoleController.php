@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\Role\StoreRequest;
 use App\Http\Requests\Admin\Role\UpdateRequest;
 use App\Models\Role;
 use App\Support\DcodeStarterKitPermissions;
+use Dcodegroup\LaravelDsgTable\Facades\DsgTable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -20,7 +21,7 @@ class RoleController extends Controller
         Gate::authorize('viewAny', Role::class);
 
         return Inertia::render('Admin/Roles/Index', [
-            'roles' => Role::query()->withCount('users')->orderBy('name')->get(['id', 'name']),
+            'fields' => DsgTable::fields('roles'),
             'status' => $request->session()->get('status'),
         ]);
     }
