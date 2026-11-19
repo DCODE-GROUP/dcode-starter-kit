@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Services\DcodeStarterKitNavigation;
+use App\Services\NavigationService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -14,7 +14,7 @@ class HandleDcodeInertiaRequests extends Middleware
     protected $rootView = 'dcode-starter-kit::app'; // @pest-ignore-type
 
     /** @return array<string, mixed> */
-    public function __construct(private readonly DcodeStarterKitNavigation $navigation) {}
+    public function __construct(private readonly NavigationService $navigation) {}
 
     public function share(Request $request): array
     {
@@ -34,7 +34,7 @@ class HandleDcodeInertiaRequests extends Middleware
             ],
             'navigation' => [
                 'menu' => fn () => $this->navigation->menu($request),
-                'profile' => fn () => $this->navigation->profile($request),
+                'profile' => fn () => $this->navigation->profile(),
             ],
         ];
     }

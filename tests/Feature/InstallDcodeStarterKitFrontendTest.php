@@ -30,7 +30,7 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->and($calls[1][0])->toBe(['pnpm', 'run', 'build'])
         ->and(is_file($directory.'/resources/js/dcode-starter-kit.ts'))->toBeTrue()
         ->and(is_file($directory.'/resources/js/components/Navigation/AppSidebar.vue'))->toBeTrue()
-        ->and(is_file($directory.'/app/Services/DcodeStarterKitNavigation.php'))->toBeTrue()
+        ->and(is_file($directory.'/app/Services/NavigationService.php'))->toBeTrue()
         ->and(is_file($directory.'/vite.config.dcode.ts'))->toBeTrue();
 
     $viteConfig = (string) file_get_contents($directory.'/vite.config.dcode.ts');
