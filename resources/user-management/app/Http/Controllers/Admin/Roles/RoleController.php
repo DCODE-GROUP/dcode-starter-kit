@@ -84,6 +84,10 @@ class RoleController extends Controller
         Gate::authorize('delete', $role);
         $role->delete();
 
-        return to_route('admin.roles.index')->with('status', 'Role deleted.');
+        return to_route('admin.roles.index')->with('status', [
+            'title' => 'Success',
+            'message' => 'Role deleted successfully.',
+            'type' => 'success',
+        ]);
     }
 }

@@ -86,10 +86,10 @@ class SetupUserManagement
         }
 
         return match ($relative) {
-            'resources/js/pages/Admin/Users/Index.vue' => str_contains($contents, '<table')
-                && str_contains($contents, 'admin.users.index'),
-            'resources/js/pages/Admin/Roles/Index.vue' => str_contains($contents, '<table')
-                && str_contains($contents, 'admin.roles.index'),
+            'resources/js/pages/Admin/Users/Index.vue' => str_contains($contents, '<DsgTable')
+                && str_contains($contents, 'admin.users.create'),
+            'resources/js/pages/Admin/Roles/Index.vue' => str_contains($contents, '<DsgTable')
+                && str_contains($contents, 'admin.roles.create'),
             'resources/js/pages/Admin/Users/CreateEdit.vue' => str_contains($contents, 'class="max-w-3xl')
                 && str_contains($contents, 'admin.users.update'),
             'resources/js/pages/Admin/Roles/CreateEdit.vue' => str_contains($contents, 'class="max-w-3xl')

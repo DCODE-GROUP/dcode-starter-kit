@@ -18,6 +18,7 @@
                 "
                 :has-header="false"
                 class="flex-1"
+                @dsg-table:action-delete="deleteAction"
             >
                 <template #dsg-table--search-header>
                     <DsgTableSearch
@@ -66,14 +67,27 @@
                 </template>
             </DsgTable>
         </div>
+
+        <DsgModal
+            v-if="selectedUserToDelete"
+            ref="deleteUserModalRef"
+            :title="`Delete user ${selectedUserToDelete.full_name}`"
+            description="Are you sure you want to delete this user?"
+            :primary-button="{ label: 'Delete', theme: 'destructive' }"
+            :secondary-button="{ label: 'Cancel', theme: 'gray-secondary' }"
+            :has-closed-button="false"
+            footer-type="horizontal-right"
+            @primary-button-clicked="handleDeleteUser"
+            @secondary-button-clicked="handleCancelDeleteUser"
+        />
     </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
-import { usePage } from "@inertiajs/vue3";
+import { ref, useTemplateRef } from "vue";
+import { router, usePage } from "@inertiajs/vue3";
 import { DsgTable, DsgTablePerPage, DsgTableSearch } from "@dsg/table";
-import { DsgBadge, DsgButton } from "@dsg";
+import { DsgAlert, DsgBadge, DsgButton, DsgModal } from "@dsg";
 import { route } from "ziggy-js";
 import AppLayout from "@layouts/App.vue";
 import { mountedStatusToast } from "@composables/StatusToast";
@@ -89,6 +103,41 @@ const fields = props.fields;
 const canCreate = permissions.includes("admin-portal-users-create");
 const dsgTableRef =
     useTemplateRef<InstanceType<typeof DsgTable>>("dsgTableRef");
+const selectedUserToDelete = ref<{ id: number; full_name: string } | null>(null);
+const deleteUserModalRef = useTemplateRef<typeof DsgModal>("deleteUserModalRef");
+
+const deleteAction = (event: Event, data: { id: number; full_name: string }): void => {
+    event.preventDefault();
+    selectedUserToDelete.value = data;
+
+    setTimeout(() => deleteUserModalRef.value?.open(), 1);
+};
+
+const handleCancelDeleteUser = (): void => {
+    deleteUserModalRef.value?.close();
+    selectedUserToDelete.value = null;
+};
+
+const handleDeleteUser = (): void => {
+    if (! selectedUserToDelete.value) {
+        return;
+    }
+
+    const user = selectedUserToDelete.value;
+
+    router.delete(route("admin.users.destroy", user.id), {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+            deleteUserModalRef.value?.close();
+            selectedUserToDelete.value = null;
+            dsgTableRef.value?.deleteRowTable(user);
+            DsgAlert.success("Success", "User deleted successfully.");
+        },
+        onError: () => DsgAlert.error("Error", "The user could not be deleted."),
+    });
+};
+
 const handleTermChanged = (term: string | null): void => {
     dsgTableRef.value?.termChanged?.(term);
 };

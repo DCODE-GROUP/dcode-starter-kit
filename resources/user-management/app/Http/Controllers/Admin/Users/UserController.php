@@ -107,6 +107,10 @@ class UserController extends Controller
         Gate::authorize('delete', $user);
         $user->delete();
 
-        return to_route('admin.users.index')->with('status', 'User deleted.');
+        return to_route('admin.users.index')->with('status', [
+            'title' => 'Success',
+            'message' => 'User deleted successfully.',
+            'type' => 'success',
+        ]);
     }
 }

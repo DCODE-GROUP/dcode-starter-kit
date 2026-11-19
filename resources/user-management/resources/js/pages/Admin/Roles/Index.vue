@@ -18,6 +18,7 @@
                 "
                 :has-header="false"
                 class="flex-1"
+                @dsg-table:action-delete="deleteAction"
             >
                 <template #dsg-table--search-header>
                     <DsgTableSearch
@@ -31,14 +32,27 @@
                 </template>
             </DsgTable>
         </div>
+
+        <DsgModal
+            v-if="selectedRoleToDelete"
+            ref="deleteRoleModalRef"
+            :title="`Delete role ${selectedRoleToDelete.name}`"
+            description="Are you sure you want to delete this role?"
+            :primary-button="{ label: 'Delete', theme: 'destructive' }"
+            :secondary-button="{ label: 'Cancel', theme: 'gray-secondary' }"
+            :has-closed-button="false"
+            footer-type="horizontal-right"
+            @primary-button-clicked="handleDeleteRole"
+            @secondary-button-clicked="handleCancelDeleteRole"
+        />
     </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef } from "vue";
-import { usePage } from "@inertiajs/vue3";
+import { ref, useTemplateRef } from "vue";
+import { router, usePage } from "@inertiajs/vue3";
 import { DsgTable, DsgTablePerPage, DsgTableSearch } from "@dsg/table";
-import { DsgButton } from "@dsg";
+import { DsgAlert, DsgButton, DsgModal } from "@dsg";
 import { route } from "ziggy-js";
 import AppLayout from "@layouts/App.vue";
 import { mountedStatusToast } from "@composables/StatusToast";
@@ -54,6 +68,41 @@ const fields = props.fields;
 const canCreate = permissions.includes("admin-portal-roles-permissions-create");
 const dsgTableRef =
     useTemplateRef<InstanceType<typeof DsgTable>>("dsgTableRef");
+const selectedRoleToDelete = ref<{ id: number; name: string } | null>(null);
+const deleteRoleModalRef = useTemplateRef<typeof DsgModal>("deleteRoleModalRef");
+
+const deleteAction = (event: Event, data: { id: number; name: string }): void => {
+    event.preventDefault();
+    selectedRoleToDelete.value = data;
+
+    setTimeout(() => deleteRoleModalRef.value?.open(), 1);
+};
+
+const handleCancelDeleteRole = (): void => {
+    deleteRoleModalRef.value?.close();
+    selectedRoleToDelete.value = null;
+};
+
+const handleDeleteRole = (): void => {
+    if (! selectedRoleToDelete.value) {
+        return;
+    }
+
+    const role = selectedRoleToDelete.value;
+
+    router.delete(route("admin.roles.destroy", role.id), {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+            deleteRoleModalRef.value?.close();
+            selectedRoleToDelete.value = null;
+            dsgTableRef.value?.deleteRowTable(role);
+            DsgAlert.success("Success", "Role deleted successfully.");
+        },
+        onError: () => DsgAlert.error("Error", "The role could not be deleted."),
+    });
+};
+
 const handleTermChanged = (term: string | null): void => {
     dsgTableRef.value?.termChanged?.(term);
 };
