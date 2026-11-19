@@ -98,6 +98,7 @@ class SetupUserManagement
                 && str_contains($contents, 'Gate::authorize'),
             'app/Http/Controllers/Admin/Roles/RoleController.php' => str_contains($contents, "Inertia::render('Admin/Roles/Index'")
                 && str_contains($contents, 'Gate::authorize'),
+            'app/Models/Role.php' => str_contains($contents, 'class Role extends SpatieRole'),
             'app/Tables/UsersTable.php' => str_contains($contents, 'class UsersTable')
                 && str_contains($contents, 'CrudActions::for($model, \'admin.users\')'),
             'app/Tables/RolesTable.php' => str_contains($contents, 'class RolesTable')
@@ -126,15 +127,20 @@ class SetupUserManagement
     {
         $path = $workingDirectory.'/app/Models/User.php';
         $contents = $this->read($path, 'app/Models/User.php');
-        $import = 'use Spatie\\Permission\\Traits\\HasRoles;';
+        $imports = [
+            'use Dcodegroup\\ActivityLog\\Support\\Traits\\LastModifiedBy;',
+            'use Spatie\\Permission\\Traits\\HasRoles;',
+        ];
 
-        if (! str_contains($contents, $import)) {
-            $contents = preg_replace_callback(
-                '/(namespace App\\\\Models;\s*)/',
-                fn (array $matches): string => $matches[1]."\n{$import}\n",
-                $contents,
-                1,
-            ) ?? $contents;
+        foreach ($imports as $import) {
+            if (! str_contains($contents, $import)) {
+                $contents = preg_replace_callback(
+                    '/(namespace App\\\\Models;\s*)/',
+                    fn (array $matches): string => $matches[1]."\n{$import}\n",
+                    $contents,
+                    1,
+                ) ?? $contents;
+            }
         }
 
         if (! str_contains($contents, 'use HasRoles;')) {
@@ -142,6 +148,14 @@ class SetupUserManagement
 
             if ($count !== 1) {
                 throw new RuntimeException('Unable to add HasRoles to app/Models/User.php safely.');
+            }
+        }
+
+        if (! str_contains($contents, 'use LastModifiedBy;')) {
+            $contents = preg_replace('/(use HasRoles;)/', "$1\n    use LastModifiedBy;", $contents, 1, $count) ?? $contents;
+
+            if ($count !== 1) {
+                throw new RuntimeException('Unable to add LastModifiedBy to app/Models/User.php safely.');
             }
         }
 

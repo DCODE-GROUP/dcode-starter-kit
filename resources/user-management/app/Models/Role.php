@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use Dcodegroup\ActivityLog\Support\Traits\LastModifiedBy;
 use Spatie\Permission\Models\Role as SpatieRole;
 
-class Role extends SpatieRole {}
+class Role extends SpatieRole
+{
+    use LastModifiedBy;
+}
