@@ -48,6 +48,8 @@ The installer uses Laravel's conventional frontend entry points: `resources/css/
 
 The generated language file is installed at `lang/en/messages.php`, and the Inertia root view is installed at `resources/views/app.blade.php`. Host-generated code references these files directly rather than vendor-namespaced package views or translations.
 
+The installer also configures `spatie/laravel-login-link` for local development. It creates the host `config/login-link.php` with the `local` environment and standard local host restrictions, provides `lang/en/auth.php` with the `auth.login_link` translation, and adds a `Login as ADMIN` Vue/Inertia link to the login screen. The link logs in as the seeded `forge@dcodegroup.com` user and is hidden outside the local environment. Review or customise the host configuration before using non-local environments; customised login-link configuration is never overwritten on reruns.
+
 The generated Inertia middleware shares the current application environment, authenticated user and permissions, backend navigation, and DSG breadcrumb data. The application layout renders those breadcrumbs using `DsgBreadcrumb`.
 
 The installer also adds host-owned administrative audit logging. Requests to generated `/admin/*` routes are recorded in `audit_logs`, with configurable six-month retention in `config/auditing.php`; `garbage-collect:audit-logs` is scheduled daily. The audit middleware is permission-model neutral and does not depend on the old project-starter role hierarchy.

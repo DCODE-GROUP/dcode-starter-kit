@@ -12,6 +12,7 @@ it('ships the inertia middleware as host application code', function () {
         ->and($contents)->toContain('protected $rootView')
         ->and($contents)->toContain("'app'")
         ->and($contents)->toContain("'environment' => app()->environment()")
+        ->and($contents)->toContain("trans('auth.login_link')")
         ->and($contents)->toContain("'breadcrumbs' => fn () => \$this->navigation->breadcrumbs(\$request)")
         ->and($contents)->toContain('NavigationService')
         ->and(is_file(__DIR__.'/../../resources/frontend/app/Services/NavigationService.php'))->toBeTrue()

@@ -32,6 +32,7 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->and(is_file($directory.'/resources/js/components/Navigation/AppSidebar.vue'))->toBeTrue()
         ->and(is_file($directory.'/app/Services/NavigationService.php'))->toBeTrue()
         ->and(is_file($directory.'/lang/en/messages.php'))->toBeTrue()
+        ->and(is_file($directory.'/lang/en/auth.php'))->toBeTrue()
         ->and(is_file($directory.'/resources/views/app.blade.php'))->toBeTrue()
         ->and(is_file($directory.'/vite.config.ts'))->toBeTrue()
         ->and(is_file($directory.'/tsconfig.json'))->toBeTrue();
@@ -53,6 +54,8 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->not->toContain('dcode-starter-kit::');
     expect(file_get_contents($directory.'/lang/en/messages.php'))
         ->toContain("'navigation'");
+    expect(file_get_contents($directory.'/lang/en/auth.php'))
+        ->toContain("'login_link' => 'Login as ADMIN'");
     expect(file_get_contents($directory.'/resources/views/app.blade.php'))
         ->toContain("@vite(['resources/css/app.css', 'resources/js/app.ts'])");
     expect(file_get_contents($directory.'/resources/js/layouts/App.vue'))
@@ -74,7 +77,9 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->toContain('.sidebar .sidebar__nav .sidebar__nav-bottom .dsg-avatar .dsg-avatar__link .dsg-avatar__info .dsg-avatar__title');
     expect(file_get_contents($directory.'/resources/js/pages/Auth/Login.vue'))
         ->toContain('auth__content-actions')
-        ->toContain('DsgCheckbox');
+        ->toContain('DsgCheckbox')
+        ->toContain('login-link.vue')
+        ->toContain('page.props.environment === "local"');
 
     $package = json_decode((string) file_get_contents($directory.'/package.json'), true);
     expect($package['devDependencies']['vue'])->toBe('^3.5')

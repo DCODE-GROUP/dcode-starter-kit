@@ -28,7 +28,9 @@ class HandleDcodeInertiaRequests extends Middleware
             ],
             'environment' => app()->environment(),
             'translations' => [
-                'auth' => trans('messages.auth'),
+                'auth' => array_merge(trans('messages.auth'), [
+                    'login_link' => trans('auth.login_link'),
+                ]),
                 'dashboard' => trans('messages.dashboard'),
                 'account' => trans('messages.account'),
                 'navigation' => trans('messages.navigation'),

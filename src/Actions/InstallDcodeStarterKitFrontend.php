@@ -315,6 +315,7 @@ class InstallDcodeStarterKitFrontend
         }
 
         $sourceFiles['lang/en/messages.php'] = dirname(__DIR__, 2).'/lang/en/messages.php';
+        $sourceFiles['lang/en/auth.php'] = dirname(__DIR__, 2).'/lang/en/auth.php';
         $sourceFiles['resources/views/app.blade.php'] = dirname(__DIR__, 2).'/resources/views/app.blade.php';
 
         return $sourceFiles;

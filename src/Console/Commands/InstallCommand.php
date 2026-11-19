@@ -15,6 +15,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\SetupAuditLogging;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupLoginLink;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupUserManagement;
@@ -40,6 +41,7 @@ class InstallCommand extends Command
         PublishAttachmentMigrations $attachmentMigrations,
         SetupAttachments $attachments,
         SetupUserManagement $userManagement,
+        SetupLoginLink $loginLink,
         RunDcodeStarterKitDatabaseSetup $databaseSetup,
     ): int {
         $tenancyOption = $this->option('tenancy');
@@ -232,6 +234,19 @@ class InstallCommand extends Command
         }
 
         $this->info('User and role management configured successfully.');
+
+        if (! $loginLink->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupLoginLink::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Local login-link configured successfully.');
 
         if (! $frontend->install(base_path(), function (string $output): void {
             $this->output->write($output);
