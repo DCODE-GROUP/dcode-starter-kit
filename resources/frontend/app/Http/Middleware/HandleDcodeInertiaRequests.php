@@ -26,6 +26,7 @@ class HandleDcodeInertiaRequests extends Middleware
                     ? $request->user()->getAllPermissions()->pluck('name')->values()
                     : [],
             ],
+            'environment' => app()->environment(),
             'translations' => [
                 'auth' => trans('messages.auth'),
                 'dashboard' => trans('messages.dashboard'),
@@ -36,6 +37,7 @@ class HandleDcodeInertiaRequests extends Middleware
                 'menu' => fn () => $this->navigation->menu($request),
                 'profile' => fn () => $this->navigation->profile(),
             ],
+            'breadcrumbs' => fn () => $this->navigation->breadcrumbs($request),
         ];
     }
 }

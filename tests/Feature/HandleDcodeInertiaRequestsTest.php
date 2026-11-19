@@ -11,11 +11,14 @@ it('ships the inertia middleware as host application code', function () {
         ->and($contents)->toContain('namespace App\\Http\\Middleware;')
         ->and($contents)->toContain('protected $rootView')
         ->and($contents)->toContain("'app'")
+        ->and($contents)->toContain("'environment' => app()->environment()")
+        ->and($contents)->toContain("'breadcrumbs' => fn () => \$this->navigation->breadcrumbs(\$request)")
         ->and($contents)->toContain('NavigationService')
         ->and(is_file(__DIR__.'/../../resources/frontend/app/Services/NavigationService.php'))->toBeTrue()
         ->and($navigation)->toContain("'permissions'")
-        ->toContain('cachedMenu')
-        ->toContain('filterMenuByPermissions');
+        ->and($navigation)->toContain('function breadcrumbs')
+        ->and($navigation)->toContain('cachedMenu')
+        ->and($navigation)->toContain('filterMenuByPermissions');
 });
 
 it('ships split host controllers for the frontend foundation', function () {

@@ -229,6 +229,7 @@ class SetupUserManagement
         $imports = [
             'App\\Http\\Controllers\\Admin\\Roles\\RoleController',
             'App\\Http\\Controllers\\Admin\\Users\\UserController',
+            'App\\Http\\Middleware\\AdminAuditLog',
             'App\\Http\\Middleware\\HandleDcodeInertiaRequests',
             'Dcodegroup\\LaravelDsgTable\\Http\\Controllers\\TableController',
             'Dcodegroup\\LaravelDsgTable\\Http\\Controllers\\TableFiltersController',
@@ -246,6 +247,12 @@ class SetupUserManagement
             $contents = preg_replace('/(<\?php\s*)/', "$1\n{$missingImports}", $contents, 1) ?? $contents;
         }
 
+        $contents = str_replace(
+            "Route::middleware([HandleDcodeInertiaRequests::class, 'auth'])\n    ->prefix('admin')",
+            "Route::middleware([HandleDcodeInertiaRequests::class, 'auth', AdminAuditLog::class])\n    ->prefix('admin')",
+            $contents,
+        );
+
         $tableRoutes = "\n\n".self::TABLE_ROUTE_MARKER.<<<'PHP'
 
 Route::middleware([HandleDcodeInertiaRequests::class, 'auth'])->group(function (): void {
@@ -256,6 +263,10 @@ PHP;
 
         if (str_contains($contents, self::ROUTE_MARKER)) {
             if (str_contains($contents, self::TABLE_ROUTE_MARKER)) {
+                if (file_put_contents($path, $contents) === false) {
+                    throw new RuntimeException('Unable to update starter user and role routes safely.');
+                }
+
                 return;
             }
 
@@ -270,7 +281,7 @@ PHP;
 
         $routes = "\n\n".self::ROUTE_MARKER.$tableRoutes.<<<'PHP'
 
-Route::middleware([HandleDcodeInertiaRequests::class, 'auth'])
+Route::middleware([HandleDcodeInertiaRequests::class, 'auth', AdminAuditLog::class])
     ->prefix('admin')
     ->as('admin.')
     ->group(function (): void {

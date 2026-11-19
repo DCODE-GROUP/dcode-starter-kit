@@ -9,6 +9,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\PublishAttachmentMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\RunDcodeStarterKitDatabaseSetup;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupAuditLogging;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
@@ -44,6 +45,10 @@ beforeEach(function () {
     $activityLog = Mockery::mock(SetupActivityLog::class);
     $activityLog->allows('setup')->andReturn(true);
     app()->instance(SetupActivityLog::class, $activityLog);
+
+    $auditLogging = Mockery::mock(SetupAuditLogging::class);
+    $auditLogging->allows('setup')->andReturn(true);
+    app()->instance(SetupAuditLogging::class, $auditLogging);
 
     $attachmentMigrations = Mockery::mock(PublishAttachmentMigrations::class);
     $attachmentMigrations->allows('publish')->andReturn(true);

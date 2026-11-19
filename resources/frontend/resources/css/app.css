@@ -37,6 +37,10 @@ body { min-width: 320px; }
 /* DSG table field classes are returned by the backend at runtime. Keep the utilities in the scan graph. */
 @source inline("px-3 py-4 text-sm text-gray-500 wrap-break-word");
 
+.dsg-table-component__main {
+  @apply bg-white;
+}
+
 /* Shared application shell conventions used by the Dcode Vue applications. */
 .auth__wrapper { display: flex; flex-direction: column; max-width: 28rem; min-width: min(24rem, calc(100vw - 2rem)); }
 .auth__header { display: flex; align-items: center; justify-content: center; padding: 1rem; }

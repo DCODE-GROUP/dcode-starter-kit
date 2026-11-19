@@ -1,28 +1,37 @@
 <template>
-  <AppLayout title="Roles">
-    <template #actions>
-      <DsgButton v-if="canCreate" :uri="route('admin.roles.create')" label="Add role" />
-    </template>
-
-    <div class="flex flex-1 flex-col overflow-hidden px-4 pb-4">
-      <DsgTable
-        ref="dsgTableRef"
-        :fields="fields"
-        :get-url="route('dsg-table', { tableName: 'roles' })"
-        :filter-endpoint="route('dsg-table.filters', { tableName: 'roles' })"
-        :has-header="false"
-        class="flex-1"
-      >
-        <template #dsg-table--search-header>
-          <DsgTableSearch name="term" @dsg-table:term-changed="handleTermChanged" />
+    <AppLayout title="Roles">
+        <template #actions>
+            <DsgButton
+                v-if="canCreate"
+                :uri="route('admin.roles.create')"
+                label="Add role"
+            />
         </template>
 
-        <template #dsg-table--footer-left-extras="slotProps">
-          <DsgTablePerPage :per-page="slotProps.perPage" />
-        </template>
-      </DsgTable>
-    </div>
-  </AppLayout>
+        <div class="flex flex-1 flex-col overflow-hidden pb-4">
+            <DsgTable
+                ref="dsgTableRef"
+                :fields="fields"
+                :get-url="route('dsg-table', { tableName: 'roles' })"
+                :filter-endpoint="
+                    route('dsg-table.filters', { tableName: 'roles' })
+                "
+                :has-header="false"
+                class="flex-1"
+            >
+                <template #dsg-table--search-header>
+                    <DsgTableSearch
+                        name="term"
+                        @dsg-table:term-changed="handleTermChanged"
+                    />
+                </template>
+
+                <template #dsg-table--footer-left-extras="slotProps">
+                    <DsgTablePerPage :per-page="slotProps.perPage" />
+                </template>
+            </DsgTable>
+        </div>
+    </AppLayout>
 </template>
 
 <script setup lang="ts">
@@ -34,14 +43,18 @@ import { route } from "ziggy-js";
 import AppLayout from "@layouts/App.vue";
 import { mountedStatusToast } from "@composables/StatusToast";
 
-const props = defineProps<{ fields: Record<string, unknown>[]; status?: string }>();
+const props = defineProps<{
+    fields: Record<string, unknown>[];
+    status?: string;
+}>();
 const page = usePage<{ auth: { permissions?: string[] }; status?: string }>();
 mountedStatusToast(props.status ?? page.props.status);
 const permissions = page.props.auth.permissions ?? [];
 const fields = props.fields;
 const canCreate = permissions.includes("admin-portal-roles-permissions-create");
-const dsgTableRef = useTemplateRef<InstanceType<typeof DsgTable>>("dsgTableRef");
+const dsgTableRef =
+    useTemplateRef<InstanceType<typeof DsgTable>>("dsgTableRef");
 const handleTermChanged = (term: string | null): void => {
-  dsgTableRef.value?.termChanged?.(term);
+    dsgTableRef.value?.termChanged?.(term);
 };
 </script>

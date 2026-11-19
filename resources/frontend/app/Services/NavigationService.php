@@ -43,6 +43,70 @@ class NavigationService
     }
 
     /** @return array<int, array<string, mixed>> */
+    public function breadcrumbs(Request $request): array
+    {
+        $menu = $this->menu($request);
+        $breadcrumbs = [];
+        $home = collect($menu)->first(fn (array $item): bool => isset($item['url']) && ! isset($item['submenu']));
+
+        if ($home !== null) {
+            $breadcrumbs[] = $this->breadcrumb($home, true);
+        }
+
+        foreach ($menu as $item) {
+            if (! isset($item['submenu'])) {
+                continue;
+            }
+
+            foreach ($item['submenu'] as $child) {
+                if (! ($child['isActive'] ?? false)) {
+                    continue;
+                }
+
+                $breadcrumbs[] = [
+                    'label' => $item['title'],
+                    'title' => $item['title'],
+                    'disabled' => true,
+                    'active' => false,
+                ];
+                $breadcrumbs[] = $this->breadcrumb($child);
+
+                break;
+            }
+        }
+
+        $routeName = (string) $request->route()?->getName();
+
+        if ($routeName === 'profile.edit') {
+            $breadcrumbs[] = $this->plainBreadcrumb(__('messages.account.title'));
+            $breadcrumbs[] = $this->plainBreadcrumb(__('messages.account.profile'), true);
+
+            return $breadcrumbs;
+        }
+
+        if ($routeName === 'password.edit') {
+            $breadcrumbs[] = $this->plainBreadcrumb(__('messages.account.title'));
+            $breadcrumbs[] = $this->plainBreadcrumb(__('messages.account.password'), true);
+
+            return $breadcrumbs;
+        }
+
+        $lastSegment = (string) collect(explode('.', $routeName))->last();
+
+        if ($lastSegment !== '' && ! in_array($lastSegment, ['dashboard', 'index'], true)) {
+            $label = str($lastSegment)->headline()->toString();
+            $breadcrumbs[] = [
+                'label' => $label,
+                'title' => $label,
+                'disabled' => true,
+                'active' => true,
+            ];
+        }
+
+        return $breadcrumbs;
+    }
+
+    /** @return array<int, array<string, mixed>> */
     protected function getMenu(Request $request): array
     {
         return [
@@ -75,6 +139,31 @@ class NavigationService
                     ],
                 ],
             ],
+        ];
+    }
+
+    /** @param array<string, mixed> $item */
+    /** @return array<string, mixed> */
+    private function breadcrumb(array $item, bool $useIcon = false): array
+    {
+        return [
+            'label' => $item['title'],
+            'title' => $item['title'],
+            'url' => $item['url'] ?? null,
+            'active' => $item['isActive'] ?? false,
+            'disabled' => ! isset($item['url']),
+            ...($useIcon ? ['useIcon' => true] : []),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function plainBreadcrumb(string $label, bool $active = false): array
+    {
+        return [
+            'label' => $label,
+            'title' => $label,
+            'disabled' => true,
+            'active' => $active,
         ];
     }
 

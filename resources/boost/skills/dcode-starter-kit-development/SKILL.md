@@ -48,6 +48,8 @@ The frontend uses Laravel's conventional `resources/css/app.css`, `resources/js/
 
 The generated host application also owns `lang/en/messages.php` and `resources/views/app.blade.php`. Installed controllers, middleware, and the Fortify provider reference the unnamespaced `messages.*` translations and `app` root view.
 
+The generated Inertia middleware shares `environment` and `breadcrumbs` props, and the application layout renders breadcrumbs with `DsgBreadcrumb`. The installer also creates a host `AuditLog` model, `AdminAuditLog` middleware, `auditing.php` configuration, audit migration, and daily `garbage-collect:audit-logs` scheduling for authenticated `/admin/*` requests.
+
 ## Rules, References, and Templates
 
 Read before executing:

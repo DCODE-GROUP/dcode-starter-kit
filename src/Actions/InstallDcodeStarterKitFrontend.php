@@ -365,7 +365,9 @@ class InstallDcodeStarterKitFrontend
             'resources/views/app.blade.php' => str_contains($contents, '@inertia')
                 && str_contains($contents, 'resources/css/app.css'),
             'app/Http/Middleware/HandleDcodeInertiaRequests.php' => str_contains($contents, 'protected $rootView')
-                && str_contains($contents, 'dcode-starter-kit::app'),
+                && (str_contains($contents, 'dcode-starter-kit::app') || str_contains($contents, 'NavigationService')),
+            'app/Services/NavigationService.php' => str_contains($contents, 'namespace App\\Services;')
+                && str_contains($contents, 'filterMenuByPermissions'),
             'app/Http/Controllers/DashboardController.php',
             'app/Http/Controllers/Auth/AuthenticatedSessionController.php',
             'app/Http/Controllers/Auth/NewPasswordController.php' => str_contains($contents, 'namespace App\\Http\\Controllers')
@@ -564,6 +566,7 @@ class InstallDcodeStarterKitFrontend
             'App\\Http\\Controllers\\DashboardController',
             'App\\Http\\Controllers\\Settings\\PasswordController',
             'App\\Http\\Controllers\\Settings\\ProfileController',
+            'App\\Http\\Middleware\\AdminAuditLog',
             'App\\Http\\Middleware\\HandleDcodeInertiaRequests',
             'Illuminate\\Support\\Facades\\Route',
         ] as $import) {
@@ -618,7 +621,7 @@ class InstallDcodeStarterKitFrontend
     {
         return self::ROUTE_MARKER.<<<'PHP'
 
-Route::middleware([HandleDcodeInertiaRequests::class, 'auth'])->group(function (): void {
+Route::middleware([HandleDcodeInertiaRequests::class, 'auth', AdminAuditLog::class])->group(function (): void {
     Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');
     Route::get('account/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('account/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -729,6 +732,12 @@ PHP;
     private function upgradeGeneratedRoutes(string $contents): string
     {
         $updated = $this->upgradeGeneratedRouteNames($contents);
+
+        $updated = str_replace(
+            "Route::middleware([HandleDcodeInertiaRequests::class, 'auth'])->group(function (): void {",
+            "Route::middleware([HandleDcodeInertiaRequests::class, 'auth', AdminAuditLog::class])->group(function (): void {",
+            $updated,
+        );
 
         $updated = str_replace(
             [

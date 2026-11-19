@@ -1,6 +1,8 @@
 <template>
     <Head v-if="title" :title="title" />
-    <div class="flex flex-row flex-1 h-screen overflow-x-hidden bg-white">
+    <div
+        class="flex flex-row flex-1 h-screen overflow-x-hidden bg-gray-neutral-100"
+    >
         <AppSidebar />
         <main
             class="flex-1 flex flex-col gap-4 relative h-screen overflow-hidden"

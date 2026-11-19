@@ -56,7 +56,9 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
     expect(file_get_contents($directory.'/resources/views/app.blade.php'))
         ->toContain("@vite(['resources/css/app.css', 'resources/js/app.ts'])");
     expect(file_get_contents($directory.'/resources/js/layouts/App.vue'))
-        ->toContain('AppSidebar');
+        ->toContain('AppSidebar')
+        ->toContain('DsgBreadcrumb')
+        ->toContain('resolvedBreadcrumbs');
     expect(file_get_contents($directory.'/resources/js/components/Navigation/AppSidebar.vue'))
         ->toContain('sidebar__nav')
         ->toContain('DsgDropdown')

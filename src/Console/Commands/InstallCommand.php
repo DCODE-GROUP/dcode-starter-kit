@@ -11,6 +11,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\PublishAttachmentMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\RunDcodeStarterKitDatabaseSetup;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupAuditLogging;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
@@ -35,6 +36,7 @@ class InstallCommand extends Command
         PublishActivityLogMigrations $activityLogMigrations,
         SetupFortifySanctum $fortifySanctum,
         SetupActivityLog $activityLog,
+        SetupAuditLogging $auditLogging,
         PublishAttachmentMigrations $attachmentMigrations,
         SetupAttachments $attachments,
         SetupUserManagement $userManagement,
@@ -109,6 +111,19 @@ class InstallCommand extends Command
         }
 
         $this->info('Activity log User integration configured successfully.');
+
+        if (! $auditLogging->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupAuditLogging::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Administrative audit logging configured successfully.');
 
         if (! $attachmentMigrations->publish(
             base_path(),
