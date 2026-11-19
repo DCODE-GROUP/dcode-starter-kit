@@ -13,6 +13,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\SetupAuditLogging;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupHealth;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupLoginLink;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
@@ -91,6 +92,10 @@ it('registers the install artisan command', function () {
     $loginLink = Mockery::mock(SetupLoginLink::class);
     $loginLink->allows('setup')->andReturn(true);
     app()->instance(SetupLoginLink::class, $loginLink);
+
+    $health = Mockery::mock(SetupHealth::class);
+    $health->allows('setup')->andReturn(true);
+    app()->instance(SetupHealth::class, $health);
 
     $databaseSetup = Mockery::mock(RunDcodeStarterKitDatabaseSetup::class);
     $databaseSetup->allows('run')->andReturn(true);

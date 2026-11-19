@@ -50,6 +50,8 @@ The generated host application also owns `lang/en/messages.php` and `resources/v
 
 The generated Inertia middleware shares `environment` and `breadcrumbs` props, and the application layout renders breadcrumbs with `DsgBreadcrumb`. The installer also creates a host `AuditLog` model, `AdminAuditLog` middleware, `auditing.php` configuration, audit migration, and daily `garbage-collect:audit-logs` scheduling for authenticated `/admin/*` requests.
 
+The installer configures Spatie Laravel Health in the host application, publishes its config and result migration, registers `HealthServiceProvider` with database, cache, Redis, and disk-space checks, and adds the public `health` JSON endpoint. Review that endpoint and the published notification settings before production use.
+
 The installer configures Spatie's local login-link integration in the host application's `config/login-link.php` and provides the `auth.login_link` translation (`Login as ADMIN`) in `lang/en/auth.php`. The generated login page uses the package Vue component to show the link only when the Inertia `environment` prop is `local`, targeting the seeded `forge@dcodegroup.com` account. The configuration restricts the feature to local environments and standard local hosts; review it before changing environments.
 
 ## Rules, References, and Templates

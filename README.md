@@ -54,6 +54,8 @@ The generated Inertia middleware shares the current application environment, aut
 
 The installer also adds host-owned administrative audit logging. Requests to generated `/admin/*` routes are recorded in `audit_logs`, with configurable six-month retention in `config/auditing.php`; `garbage-collect:audit-logs` is scheduled daily. The audit middleware is permission-model neutral and does not depend on the old project-starter role hierarchy.
 
+The installer configures Spatie Laravel Health with host-owned `HealthServiceProvider`, `config/health.php`, and health-result migrations. It registers database, cache, Redis, and disk-space checks and exposes the JSON results at the public `health` route. Review the endpoint exposure and health notification settings for the deployment environment.
+
 The command adds these regular Composer dependencies:
 
 - `bugsnag/bugsnag-laravel`

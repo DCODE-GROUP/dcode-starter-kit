@@ -15,6 +15,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\SetupAuditLogging;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupHealth;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupLoginLink;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
@@ -42,6 +43,7 @@ class InstallCommand extends Command
         SetupAttachments $attachments,
         SetupUserManagement $userManagement,
         SetupLoginLink $loginLink,
+        SetupHealth $health,
         RunDcodeStarterKitDatabaseSetup $databaseSetup,
     ): int {
         $tenancyOption = $this->option('tenancy');
@@ -247,6 +249,19 @@ class InstallCommand extends Command
         }
 
         $this->info('Local login-link configured successfully.');
+
+        if (! $health->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupHealth::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Health checks configured successfully.');
 
         if (! $frontend->install(base_path(), function (string $output): void {
             $this->output->write($output);
