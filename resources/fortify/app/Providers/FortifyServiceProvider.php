@@ -24,7 +24,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
 
         Fortify::registerView(function () {
-            Inertia::setRootView('dcode-starter-kit::app');
+            Inertia::setRootView('app');
 
             return Inertia::render('Auth/Register');
         });

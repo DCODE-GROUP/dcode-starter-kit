@@ -26,6 +26,6 @@ class ProfileController
         ]);
         $request->user()->update($data);
 
-        return back()->with('status', __('dcode-starter-kit::messages.account.saved'));
+        return back()->with('status', __('messages.account.saved'));
     }
 }

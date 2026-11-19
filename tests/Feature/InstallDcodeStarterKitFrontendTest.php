@@ -31,6 +31,8 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->and(is_file($directory.'/resources/js/app.ts'))->toBeTrue()
         ->and(is_file($directory.'/resources/js/components/Navigation/AppSidebar.vue'))->toBeTrue()
         ->and(is_file($directory.'/app/Services/NavigationService.php'))->toBeTrue()
+        ->and(is_file($directory.'/lang/en/messages.php'))->toBeTrue()
+        ->and(is_file($directory.'/resources/views/app.blade.php'))->toBeTrue()
         ->and(is_file($directory.'/vite.config.ts'))->toBeTrue()
         ->and(is_file($directory.'/tsconfig.json'))->toBeTrue();
 
@@ -46,6 +48,13 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
         ->toContain('../../node_modules/@dcodegroup-au/dsg-vue/dist/dsg-vue.css');
     expect(file_get_contents($directory.'/resources/js/app.ts'))
         ->not->toContain('import { trans }');
+    expect(file_get_contents($directory.'/app/Http/Middleware/HandleDcodeInertiaRequests.php'))
+        ->toContain("protected \$rootView = 'app'")
+        ->not->toContain('dcode-starter-kit::');
+    expect(file_get_contents($directory.'/lang/en/messages.php'))
+        ->toContain("'navigation'");
+    expect(file_get_contents($directory.'/resources/views/app.blade.php'))
+        ->toContain("@vite(['resources/css/app.css', 'resources/js/app.ts'])");
     expect(file_get_contents($directory.'/resources/js/layouts/App.vue'))
         ->toContain('AppSidebar');
     expect(file_get_contents($directory.'/resources/js/components/Navigation/AppSidebar.vue'))

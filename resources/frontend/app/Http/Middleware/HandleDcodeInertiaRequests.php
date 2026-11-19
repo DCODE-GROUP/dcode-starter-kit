@@ -11,7 +11,7 @@ use Inertia\Middleware;
 class HandleDcodeInertiaRequests extends Middleware
 {
     /** @var string */
-    protected $rootView = 'dcode-starter-kit::app'; // @pest-ignore-type
+    protected $rootView = 'app'; // @pest-ignore-type
 
     /** @return array<string, mixed> */
     public function __construct(private readonly NavigationService $navigation) {}
@@ -27,10 +27,10 @@ class HandleDcodeInertiaRequests extends Middleware
                     : [],
             ],
             'translations' => [
-                'auth' => trans('dcode-starter-kit::messages.auth'),
-                'dashboard' => trans('dcode-starter-kit::messages.dashboard'),
-                'account' => trans('dcode-starter-kit::messages.account'),
-                'navigation' => trans('dcode-starter-kit::messages.navigation'),
+                'auth' => trans('messages.auth'),
+                'dashboard' => trans('messages.dashboard'),
+                'account' => trans('messages.account'),
+                'navigation' => trans('messages.navigation'),
             ],
             'navigation' => [
                 'menu' => fn () => $this->navigation->menu($request),

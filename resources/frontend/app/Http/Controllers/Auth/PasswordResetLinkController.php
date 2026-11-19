@@ -22,6 +22,6 @@ class PasswordResetLinkController
         $request->validate(['email' => ['required', 'email']]);
         Password::sendResetLink($request->only('email'));
 
-        return back()->with('status', __('dcode-starter-kit::messages.auth.reset_sent'));
+        return back()->with('status', __('messages.auth.reset_sent'));
     }
 }

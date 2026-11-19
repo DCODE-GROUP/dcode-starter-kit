@@ -23,6 +23,6 @@ class PasswordController
         $data = $request->validate(['current_password' => ['required', 'current_password'], 'password' => ['required', 'confirmed', PasswordRule::defaults()]]);
         $request->user()->update(['password' => Hash::make($data['password'])]);
 
-        return back()->with('status', __('dcode-starter-kit::messages.account.password_saved'));
+        return back()->with('status', __('messages.account.password_saved'));
     }
 }

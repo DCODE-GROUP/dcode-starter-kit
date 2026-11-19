@@ -28,13 +28,13 @@ class NavigationService
     {
         return [
             [
-                'title' => __('dcode-starter-kit::messages.navigation.profile'),
+                'title' => __('messages.navigation.profile'),
                 'icon' => 'user-01',
                 'url' => route('profile.edit'),
                 'inertia' => true,
             ],
             [
-                'title' => __('dcode-starter-kit::messages.navigation.logout'),
+                'title' => __('messages.navigation.logout'),
                 'icon' => 'log-out-01',
                 'url' => route('logout'),
                 'action' => 'logout',
@@ -47,18 +47,18 @@ class NavigationService
     {
         return [
             [
-                'title' => __('dcode-starter-kit::messages.navigation.dashboard'),
+                'title' => __('messages.navigation.dashboard'),
                 'icon' => 'home-01',
                 'url' => route('admin.dashboard'),
                 'isActive' => $request->routeIs('admin.dashboard'),
                 'inertia' => true,
             ],
             [
-                'title' => __('dcode-starter-kit::messages.navigation.settings'),
+                'title' => __('messages.navigation.settings'),
                 'icon' => 'settings-02',
                 'submenu' => [
                     [
-                        'title' => __('dcode-starter-kit::messages.navigation.users'),
+                        'title' => __('messages.navigation.users'),
                         'icon' => 'users-01',
                         'url' => route('admin.users.index'),
                         'permissions' => ['admin-portal-users-view-list'],
@@ -66,7 +66,7 @@ class NavigationService
                         'inertia' => true,
                     ],
                     [
-                        'title' => __('dcode-starter-kit::messages.navigation.roles'),
+                        'title' => __('messages.navigation.roles'),
                         'icon' => 'shield-01',
                         'url' => route('admin.roles.index'),
                         'permissions' => ['admin-portal-roles-permissions-view-list'],

@@ -46,6 +46,8 @@ The supported starting point is a Laravel 12 or 13 application with a `package.j
 
 The installer uses Laravel's conventional frontend entry points: `resources/css/app.css`, `resources/js/app.ts`, `vite.config.ts`, and `tsconfig.json`. It preserves unrelated frontend files and does not silently overwrite customised files. A fresh Laravel default Vite config and entry files are replaced with the starter configuration; older generated `dcode-*` files are migrated when they still match the package-generated content. The command is safe to rerun after a successful install; the dependency managers handle already-installed packages.
 
+The generated language file is installed at `lang/en/messages.php`, and the Inertia root view is installed at `resources/views/app.blade.php`. Host-generated code references these files directly rather than vendor-namespaced package views or translations.
+
 The command adds these regular Composer dependencies:
 
 - `bugsnag/bugsnag-laravel`

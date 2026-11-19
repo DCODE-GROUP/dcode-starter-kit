@@ -314,6 +314,9 @@ class InstallDcodeStarterKitFrontend
             $sourceFiles[ltrim(str_replace($sourceDirectory, '', $file->getPathname()), DIRECTORY_SEPARATOR)] = $file->getPathname();
         }
 
+        $sourceFiles['lang/en/messages.php'] = dirname(__DIR__, 2).'/lang/en/messages.php';
+        $sourceFiles['resources/views/app.blade.php'] = dirname(__DIR__, 2).'/resources/views/app.blade.php';
+
         return $sourceFiles;
     }
 
@@ -356,6 +359,11 @@ class InstallDcodeStarterKitFrontend
                 && str_contains($contents, '@inertiajs/vue3'),
             'resources/js/app.ts', 'resources/js/dcode-starter-kit.ts' => str_contains($contents, 'createInertiaApp')
                 && (str_contains($contents, 'resources/js/app.ts') || str_contains($contents, 'dcode-starter-kit.css')),
+            'lang/en/messages.php' => str_contains($contents, "'navigation'")
+                && str_contains($contents, "'dashboard'")
+                && str_contains($contents, "'auth'"),
+            'resources/views/app.blade.php' => str_contains($contents, '@inertia')
+                && str_contains($contents, 'resources/css/app.css'),
             'app/Http/Middleware/HandleDcodeInertiaRequests.php' => str_contains($contents, 'protected $rootView')
                 && str_contains($contents, 'dcode-starter-kit::app'),
             'app/Http/Controllers/DashboardController.php',

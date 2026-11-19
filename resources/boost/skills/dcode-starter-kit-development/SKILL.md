@@ -46,6 +46,8 @@ The installer also installs `dcodegroup/laravel-dsg-table` and creates permissio
 
 The frontend uses Laravel's conventional `resources/css/app.css`, `resources/js/app.ts`, `vite.config.ts`, and `tsconfig.json` files. It replaces an uncustomised Laravel default Vite configuration and merges the required TypeScript aliases into an existing `tsconfig.json`; customised files stop the install with a conflict message. A prior package-generated `dcode-*` frontend install is migrated to the conventional names when its files still match generated content.
 
+The generated host application also owns `lang/en/messages.php` and `resources/views/app.blade.php`. Installed controllers, middleware, and the Fortify provider reference the unnamespaced `messages.*` translations and `app` root view.
+
 ## Rules, References, and Templates
 
 Read before executing:

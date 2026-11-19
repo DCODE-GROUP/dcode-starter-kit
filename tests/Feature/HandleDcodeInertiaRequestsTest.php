@@ -10,7 +10,7 @@ it('ships the inertia middleware as host application code', function () {
     expect($contents)->toBeString()
         ->and($contents)->toContain('namespace App\\Http\\Middleware;')
         ->and($contents)->toContain('protected $rootView')
-        ->and($contents)->toContain("'dcode-starter-kit::app'")
+        ->and($contents)->toContain("'app'")
         ->and($contents)->toContain('NavigationService')
         ->and(is_file(__DIR__.'/../../resources/frontend/app/Services/NavigationService.php'))->toBeTrue()
         ->and($navigation)->toContain("'permissions'")
