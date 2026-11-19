@@ -56,6 +56,8 @@ The installer also adds host-owned administrative audit logging. Requests to gen
 
 The installer configures Spatie Laravel Health with host-owned `HealthServiceProvider`, `config/health.php`, and health-result migrations. It registers database, cache, Redis, and disk-space checks and exposes the JSON results at the public `health` route. Review the endpoint exposure and health notification settings for the deployment environment.
 
+The installer configures Bugsnag using the host application's published `config/bugsnag.php`, registers `BugsnagServiceProvider`, adds a `bugsnag` logging channel to the default daily stack, and installs the Bugsnag OOM bootstrapper. Set `BUGSNAG_API_KEY` and other Bugsnag options in the host environment; no credentials or project-specific identifiers are copied by the package.
+
 The command adds these regular Composer dependencies:
 
 - `bugsnag/bugsnag-laravel`

@@ -12,6 +12,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\RunDcodeStarterKitDatabaseSetup;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAuditLogging;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupBugsnag;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
@@ -39,6 +40,7 @@ class InstallCommand extends Command
         SetupFortifySanctum $fortifySanctum,
         SetupActivityLog $activityLog,
         SetupAuditLogging $auditLogging,
+        SetupBugsnag $bugsnag,
         PublishAttachmentMigrations $attachmentMigrations,
         SetupAttachments $attachments,
         SetupUserManagement $userManagement,
@@ -128,6 +130,19 @@ class InstallCommand extends Command
         }
 
         $this->info('Administrative audit logging configured successfully.');
+
+        if (! $bugsnag->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupBugsnag::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Bugsnag configured successfully.');
 
         if (! $attachmentMigrations->publish(
             base_path(),

@@ -10,6 +10,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\RunDcodeStarterKitDatabaseSetup;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAuditLogging;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupBugsnag;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
@@ -76,6 +77,10 @@ it('registers the install artisan command', function () {
     $auditLogging = Mockery::mock(SetupAuditLogging::class);
     $auditLogging->allows('setup')->andReturn(true);
     app()->instance(SetupAuditLogging::class, $auditLogging);
+
+    $bugsnag = Mockery::mock(SetupBugsnag::class);
+    $bugsnag->allows('setup')->andReturn(true);
+    app()->instance(SetupBugsnag::class, $bugsnag);
 
     $attachmentMigrations = Mockery::mock(PublishAttachmentMigrations::class);
     $attachmentMigrations->allows('publish')->andReturn(true);
