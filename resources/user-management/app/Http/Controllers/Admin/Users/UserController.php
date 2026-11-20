@@ -10,8 +10,10 @@ use App\Models\User;
 use Dcodegroup\LaravelDsgTable\Facades\DsgTable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -53,12 +55,14 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $roleIds = $data['role_ids'] ?? [];
-        unset($data['role_ids'], $data['password_confirmation']);
+        $profilePhoto = $data['profile_photo'] ?? null;
+        unset($data['role_ids'], $data['password_confirmation'], $data['profile_photo'], $data['remove_profile_photo']);
         $data['password'] = Hash::make($data['password']);
         $data['active'] = (bool) ($data['active'] ?? false);
 
         $user = new User;
         $user->forceFill($data)->save();
+        $this->updateProfilePhoto($user, $profilePhoto);
         $user->syncRoles($roleIds);
 
         return to_route('admin.users.index')->with('status', [
@@ -72,7 +76,9 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $roleIds = $data['role_ids'] ?? null;
-        unset($data['role_ids'], $data['password_confirmation']);
+        $profilePhoto = $data['profile_photo'] ?? null;
+        $removeProfilePhoto = (bool) ($data['remove_profile_photo'] ?? false);
+        unset($data['role_ids'], $data['password_confirmation'], $data['profile_photo'], $data['remove_profile_photo']);
 
         if (blank($data['password'] ?? null)) {
             unset($data['password']);
@@ -90,6 +96,7 @@ class UserController extends Controller
         }
 
         $user->forceFill($data)->save();
+        $this->updateProfilePhoto($user, $profilePhoto, $removeProfilePhoto);
 
         if ($roleIds !== null && ! $isCurrentUser) {
             $user->syncRoles($roleIds);
@@ -105,12 +112,48 @@ class UserController extends Controller
     public function destroy(User $user): RedirectResponse
     {
         Gate::authorize('delete', $user);
+        $profilePhotoPath = $user->profile_photo_path;
         $user->delete();
+
+        if ($profilePhotoPath) {
+            Storage::disk('public')->delete($profilePhotoPath);
+        }
 
         return to_route('admin.users.index')->with('status', [
             'title' => 'Success',
             'message' => 'User deleted successfully.',
             'type' => 'success',
         ]);
+    }
+
+    private function updateProfilePhoto(User $user, mixed $profilePhoto, bool $remove = false): void
+    {
+        if (! $remove && ! $profilePhoto instanceof UploadedFile) {
+            return;
+        }
+
+        $oldPath = $user->profile_photo_path;
+
+        if ($profilePhoto instanceof UploadedFile) {
+            $newPath = $profilePhoto->store('profile-photos', 'public');
+
+            if ($newPath === false) {
+                return;
+            }
+
+            $user->forceFill(['profile_photo_path' => $newPath])->save();
+
+            if ($oldPath) {
+                Storage::disk('public')->delete($oldPath);
+            }
+
+            return;
+        }
+
+        $user->forceFill(['profile_photo_path' => null])->save();
+
+        if ($oldPath) {
+            Storage::disk('public')->delete($oldPath);
+        }
     }
 }

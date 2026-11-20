@@ -71,7 +71,8 @@ it('is idempotent and preserves existing provider logic', function () {
         ->and(substr_count($contents, 'Model::preventLazyLoading();'))->toBe(1)
         ->and(substr_count($contents, 'Model::handleLazyLoadingViolationUsing'))->toBe(1)
         ->and(substr_count($contents, "RateLimiter::for('api'"))->toBe(1)
-        ->and(is_file($this->applicationDefaultsDirectory.'/config/inertia.php'))->toBeTrue();
+        ->and(is_file($this->applicationDefaultsDirectory.'/config/inertia.php'))->toBeTrue()
+        ->and(is_file($this->applicationDefaultsDirectory.'/config/settings.php'))->toBeTrue();
 });
 
 it('upgrades an existing application defaults block with the production handler', function () {

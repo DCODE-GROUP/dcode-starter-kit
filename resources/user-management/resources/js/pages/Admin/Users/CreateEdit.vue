@@ -67,6 +67,16 @@
                 </template>
 
                 <template #sidebar>
+                    <SidePanel title="Profile photo" theme="white">
+                        <ProfilePhotoUploader
+                            v-model="form.profile_photo"
+                            v-model:remove="form.remove_profile_photo"
+                            :full-name="fullName"
+                            :initial-url="profilePhotoUrl"
+                        />
+                        <p v-if="form.errors.profile_photo" class="mt-2 text-sm text-error-600">{{ form.errors.profile_photo }}</p>
+                    </SidePanel>
+
                     <SidePanel title="Status" theme="white">
                         <DsgCheckbox
                             v-model="form.active"
@@ -117,6 +127,7 @@ import AppLayout from "@layouts/App.vue";
 import ContentAside from "@components/ContentAside.vue";
 import PageFooterButtons from "@components/PageFooterButtons.vue";
 import SidePanel from "@components/SidePanel.vue";
+import ProfilePhotoUploader from "@components/ProfilePhotoUploader.vue";
 
 interface Role {
     id: number;
@@ -130,6 +141,7 @@ interface User {
     email: string;
     active: boolean;
     roles?: Role[];
+    profile_photo_path?: string | null;
 }
 const props = defineProps<{
     user: User | null;
@@ -141,6 +153,10 @@ const canManageRoles = (page.props.auth.permissions ?? []).includes(
     "admin-portal-roles-permissions-update",
 );
 const user = props.user;
+const fullName = [user?.first_name, user?.middle_name, user?.last_name].filter(Boolean).join(" ") || user?.email || "New user";
+const profilePhotoUrl = user?.profile_photo_path
+    ? (user.profile_photo_path.startsWith("http") ? user.profile_photo_path : `/storage/${user.profile_photo_path}`)
+    : null;
 const roleOptions = props.roles.map((role) => ({
     id: role.id,
     label: role.name,
@@ -154,6 +170,8 @@ const form = useForm({
     password_confirmation: "",
     active: user?.active ?? true,
     role_ids: user?.roles?.map((role) => role.id) ?? ([] as number[]),
+    profile_photo: null as File | null,
+    remove_profile_photo: false,
 });
 const selectedRoles = computed({
     get: () => roleOptions.filter((role) => form.role_ids.includes(role.id)),
@@ -173,9 +191,9 @@ const submit = (): void => {
     };
 
     if (user) {
-        form.put(route("admin.users.update", user.id), options);
+        form.put(route("admin.users.update", user.id), { ...options, forceFormData: true });
     } else {
-        form.post(route("admin.users.store"), options);
+        form.post(route("admin.users.store"), { ...options, forceFormData: true });
     }
 };
 </script>

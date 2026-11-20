@@ -74,11 +74,10 @@ class SetupAws
             throw new RuntimeException('Unable to read config/filesystems.php.');
         }
 
-        if (str_contains($contents, "'s3' => [")) {
-            return;
-        }
+        $disks = '';
 
-        $disk = <<<'PHP'
+        if (! str_contains($contents, "'s3' => [")) {
+            $disks .= <<<'PHP'
 
         's3' => [
             'driver' => 's3',
@@ -93,10 +92,32 @@ class SetupAws
             'report' => false,
         ],
 PHP;
+        }
+
+        if (! str_contains($contents, "'minio' => [")) {
+            $disks .= <<<'PHP'
+
+        'minio' => [
+            'driver' => 's3',
+            'key' => env('MINIO_ACCESS_KEY_ID', 'laradock'),
+            'secret' => env('MINIO_SECRET_ACCESS_KEY', 'laradock'),
+            'region' => env('MINIO_DEFAULT_REGION', 'us-east-1'),
+            'bucket' => env('MINIO_BUCKET', 'strata'),
+            'endpoint' => env('MINIO_ENDPOINT', 'http://minio:9900'),
+            'url' => env('MINIO_URL', 'https://minio.test/project-starter/'),
+            'use_path_style_endpoint' => true,
+            'throw' => false,
+        ],
+PHP;
+        }
+
+        if ($disks === '') {
+            return;
+        }
 
         $contents = preg_replace_callback(
             "/(    'disks' => \[)(.*?)(\n    \],)/s",
-            static fn (array $matches): string => $matches[1].$matches[2].$disk.$matches[3],
+            static fn (array $matches): string => $matches[1].$matches[2].$disks.$matches[3],
             $contents,
             1,
             $count,

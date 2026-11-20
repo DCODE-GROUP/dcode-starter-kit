@@ -21,6 +21,7 @@ class SetupApplicationDefaults
     {
         try {
             $this->copyInertiaConfiguration($workingDirectory);
+            $this->copySettingsConfiguration($workingDirectory);
             $this->updateApplicationProvider($workingDirectory);
             $output("Application defaults configured.\n");
 
@@ -170,6 +171,28 @@ PHP;
 
         if (file_put_contents($path, $contents) === false) {
             throw new RuntimeException('Unable to update app/Providers/AppServiceProvider.php.');
+        }
+    }
+
+    private function copySettingsConfiguration(string $workingDirectory): void
+    {
+        $source = dirname(__DIR__, 2).'/resources/settings/config/settings.php';
+        $target = $workingDirectory.'/config/settings.php';
+
+        if (is_file($target)) {
+            if (file_get_contents($source) !== file_get_contents($target)) {
+                throw new RuntimeException('Refusing to overwrite customised config/settings.php.');
+            }
+
+            return;
+        }
+
+        if (! is_dir(dirname($target)) && ! mkdir(dirname($target), 0755, true) && ! is_dir(dirname($target))) {
+            throw new RuntimeException('Unable to create the config directory for settings.php.');
+        }
+
+        if (! copy($source, $target)) {
+            throw new RuntimeException('Unable to create config/settings.php.');
         }
     }
 }

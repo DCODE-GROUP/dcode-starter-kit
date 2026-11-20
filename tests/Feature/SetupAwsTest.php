@@ -49,13 +49,14 @@ afterEach(function () {
     }
 });
 
-it('installs AWS and CloudFront configuration and the S3 disk', function () {
+it('installs AWS and CloudFront configuration and S3-compatible disks', function () {
     $this->awsDirectory = awsFixture();
 
     expect(app(SetupAws::class)->setup($this->awsDirectory, static function (): void {}))->toBeTrue()
         ->and(is_file($this->awsDirectory.'/config/aws.php'))->toBeTrue()
         ->and(is_file($this->awsDirectory.'/config/cloudfront-url-signer.php'))->toBeTrue()
         ->and(file_get_contents($this->awsDirectory.'/config/filesystems.php'))->toContain("'s3' => [")
+        ->toContain("'minio' => [")
         ->and(file_get_contents($this->awsDirectory.'/bootstrap/app.php'))->toContain('AwsServiceProvider::class');
 });
 
@@ -67,5 +68,6 @@ it('is idempotent for generated AWS configuration', function () {
         ->and($action->setup($this->awsDirectory, static function (): void {}))->toBeTrue();
 
     expect(substr_count((string) file_get_contents($this->awsDirectory.'/config/filesystems.php'), "'s3' => ["))->toBe(1)
+        ->and(substr_count((string) file_get_contents($this->awsDirectory.'/config/filesystems.php'), "'minio' => ["))->toBe(1)
         ->and(substr_count((string) file_get_contents($this->awsDirectory.'/bootstrap/app.php'), 'AwsServiceProvider::class'))->toBe(1);
 });

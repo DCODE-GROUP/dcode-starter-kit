@@ -30,7 +30,7 @@
           <hr class="sidebar__divider" />
           <DsgDropdown ref="profileDropdownEl" :menu-items="profileMenuItems" placement="top-start" :skidding="-16">
             <template #dsg-dropdown--trigger>
-              <DsgAvatar :full-name="userName" :profile-uri="profilePhotoUri" :theme="profilePhotoUri ? 'profile-photo' : undefined" :title="userName" :sub-text="user.email" @click="toggleProfileDropdown" />
+              <DsgAvatar :full-name="userName" :profile-uri="profilePhotoUri" size="md" :title="userName" :sub-text="user.email" @click="toggleProfileDropdown" />
             </template>
           </DsgDropdown>
         </div>

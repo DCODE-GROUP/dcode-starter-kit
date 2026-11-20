@@ -24,6 +24,8 @@ class StoreRequest extends FormRequest
             'active' => ['boolean'],
             'role_ids' => ['array'],
             'role_ids.*' => ['integer', Rule::exists('roles', 'id')],
+            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:1024'],
+            'remove_profile_photo' => ['boolean'],
         ];
     }
 }
