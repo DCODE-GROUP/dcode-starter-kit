@@ -8,8 +8,10 @@ use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishAttachmentMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\RunDcodeStarterKitDatabaseSetup;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupApplicationDefaults;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAuditLogging;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupAws;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupBugsnag;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
@@ -52,6 +54,14 @@ beforeEach(function () {
     $auditLogging = Mockery::mock(SetupAuditLogging::class);
     $auditLogging->allows('setup')->andReturn(true);
     app()->instance(SetupAuditLogging::class, $auditLogging);
+
+    $applicationDefaults = Mockery::mock(SetupApplicationDefaults::class);
+    $applicationDefaults->allows('setup')->andReturn(true);
+    app()->instance(SetupApplicationDefaults::class, $applicationDefaults);
+
+    $aws = Mockery::mock(SetupAws::class);
+    $aws->allows('setup')->andReturn(true);
+    app()->instance(SetupAws::class, $aws);
 
     $bugsnag = Mockery::mock(SetupBugsnag::class);
     $bugsnag->allows('setup')->andReturn(true);
@@ -105,12 +115,16 @@ it('installs runtime and development dependencies with Composer from the applica
             [
                 'composer',
                 'require',
+                'aws/aws-sdk-php',
+                'aws/aws-sdk-php-laravel',
                 'bugsnag/bugsnag-laravel',
                 'dcodegroup/activity-log',
                 'dcodegroup/laravel-dsg-table',
                 'dcodegroup/laravel-attachments-backend',
+                'dcodegroup/laravel-cloudfront-url-signer',
                 'laravel/fortify',
                 'laravel/sanctum',
+                'league/flysystem-aws-s3-v3',
                 'spatie/cpu-load-health-check',
                 'spatie/laravel-health',
                 'spatie/laravel-log-dumper',
@@ -185,7 +199,7 @@ it('reports success only after both dependency groups install', function () {
     app()->instance(InstallDcodeStarterKitDependencies::class, new InstallDcodeStarterKitDependencies($runner));
 
     $this->artisan('dcode:install')
-        ->expectsOutputToContain('Installing bugsnag/bugsnag-laravel')
+        ->expectsOutputToContain('Installing aws/aws-sdk-php')
         ->expectsOutputToContain('Dcode Starter Kit dependencies installed successfully.')
         ->assertSuccessful();
 });

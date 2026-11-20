@@ -10,8 +10,10 @@ use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishAttachmentMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\RunDcodeStarterKitDatabaseSetup;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupApplicationDefaults;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAuditLogging;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupAws;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupBugsnag;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
@@ -40,6 +42,8 @@ class InstallCommand extends Command
         SetupFortifySanctum $fortifySanctum,
         SetupActivityLog $activityLog,
         SetupAuditLogging $auditLogging,
+        SetupApplicationDefaults $applicationDefaults,
+        SetupAws $aws,
         SetupBugsnag $bugsnag,
         PublishAttachmentMigrations $attachmentMigrations,
         SetupAttachments $attachments,
@@ -130,6 +134,32 @@ class InstallCommand extends Command
         }
 
         $this->info('Administrative audit logging configured successfully.');
+
+        if (! $applicationDefaults->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupApplicationDefaults::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Application defaults configured successfully.');
+
+        if (! $aws->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupAws::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('AWS S3 and CloudFront configured successfully.');
 
         if (! $bugsnag->setup(
             base_path(),

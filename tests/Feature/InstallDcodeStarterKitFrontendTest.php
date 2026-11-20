@@ -97,7 +97,7 @@ it('sets up pnpm, installs dependencies, and builds the frontend', function () {
     $routes = (string) file_get_contents($directory.'/routes/web.php');
     $authRoutes = (string) file_get_contents($directory.'/routes/auth.php');
     expect(substr_count($routes, '// Dcode Starter Kit frontend routes'))->toBe(1)
-        ->and($routes)->toContain("Route::get('/', DashboardController::class);")
+        ->and($routes)->toContain("Route::get('/', DashboardController::class)->middleware(HandleDcodeInertiaRequests::class);")
         ->and($routes)->toContain("Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');")
         ->and($routes)->toContain('ProfileController::class')
         ->and($routes)->toContain("require __DIR__.'/auth.php';")
@@ -288,6 +288,7 @@ it('upgrades the generated dcode route names when rerun', function () {
         ->toContain("->name('password.store')")
         ->and(file_get_contents($routePath))->toContain("->name('password.update')")
         ->toContain("Route::get('admin/dashboard', DashboardController::class)->name('admin.dashboard');")
+        ->toContain("Route::get('/', DashboardController::class)->middleware(HandleDcodeInertiaRequests::class);")
         ->toContain("->name('admin.dashboard')");
 });
 

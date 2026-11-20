@@ -505,6 +505,7 @@ class InstallDcodeStarterKitFrontend
                 $authContents = $this->authenticationRoutes();
             } else {
                 $updated = $this->upgradeGeneratedRouteNames($contents);
+                $updated = $this->upgradeGeneratedRootRoute($updated);
                 $authContents = $this->upgradeGeneratedRouteNames($authContents);
             }
 
@@ -540,13 +541,13 @@ class InstallDcodeStarterKitFrontend
         $defaultRoute = "/Route::get\(\s*['\"]\\/['\"]\s*,\s*function\s*\(\s*\)\s*\{\s*return\s+view\(\s*['\"]welcome['\"]\s*\)\s*;\s*\}\s*\)\s*;/s";
         $viewRoute = "/Route::view\(\s*['\"]\\/['\"]\s*,\s*['\"]welcome['\"]\s*\)\s*;/s";
 
-        $updated = preg_replace($defaultRoute, "Route::get('/', DashboardController::class);", $contents, 1, $count);
+        $updated = preg_replace($defaultRoute, "Route::get('/', DashboardController::class)->middleware(HandleDcodeInertiaRequests::class);", $contents, 1, $count);
 
         if ($count === 1) {
             return (string) $updated;
         }
 
-        $updated = preg_replace($viewRoute, "Route::get('/', DashboardController::class);", $contents, 1, $count);
+        $updated = preg_replace($viewRoute, "Route::get('/', DashboardController::class)->middleware(HandleDcodeInertiaRequests::class);", $contents, 1, $count);
 
         if ($count === 1) {
             return (string) $updated;
@@ -726,6 +727,15 @@ PHP;
                 ")->name('password.edit');",
                 ")->name('password.update');",
             ],
+            $contents,
+        );
+    }
+
+    private function upgradeGeneratedRootRoute(string $contents): string
+    {
+        return str_replace(
+            "Route::get('/', DashboardController::class);",
+            "Route::get('/', DashboardController::class)->middleware(HandleDcodeInertiaRequests::class);",
             $contents,
         );
     }

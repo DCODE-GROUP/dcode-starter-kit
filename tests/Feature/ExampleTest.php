@@ -8,8 +8,10 @@ use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishAttachmentMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\RunDcodeStarterKitDatabaseSetup;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupApplicationDefaults;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAuditLogging;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupAws;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupBugsnag;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
@@ -77,6 +79,14 @@ it('registers the install artisan command', function () {
     $auditLogging = Mockery::mock(SetupAuditLogging::class);
     $auditLogging->allows('setup')->andReturn(true);
     app()->instance(SetupAuditLogging::class, $auditLogging);
+
+    $applicationDefaults = Mockery::mock(SetupApplicationDefaults::class);
+    $applicationDefaults->allows('setup')->andReturn(true);
+    app()->instance(SetupApplicationDefaults::class, $applicationDefaults);
+
+    $aws = Mockery::mock(SetupAws::class);
+    $aws->allows('setup')->andReturn(true);
+    app()->instance(SetupAws::class, $aws);
 
     $bugsnag = Mockery::mock(SetupBugsnag::class);
     $bugsnag->allows('setup')->andReturn(true);

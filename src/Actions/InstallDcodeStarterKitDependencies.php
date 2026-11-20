@@ -14,12 +14,16 @@ class InstallDcodeStarterKitDependencies
     public const string DEVELOPMENT_STEP = 'development dependency installation';
 
     private const array RUNTIME_DEPENDENCIES = [
+        'aws/aws-sdk-php',
+        'aws/aws-sdk-php-laravel',
         'bugsnag/bugsnag-laravel',
         'dcodegroup/activity-log',
         'dcodegroup/laravel-dsg-table',
         'dcodegroup/laravel-attachments-backend',
+        'dcodegroup/laravel-cloudfront-url-signer',
         'laravel/fortify',
         'laravel/sanctum',
+        'league/flysystem-aws-s3-v3',
         'spatie/cpu-load-health-check',
         'spatie/laravel-health',
         'spatie/laravel-log-dumper',

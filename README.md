@@ -58,6 +58,10 @@ The installer configures Spatie Laravel Health with host-owned `HealthServicePro
 
 The installer configures Bugsnag using the host application's published `config/bugsnag.php`, registers `BugsnagServiceProvider`, adds a `bugsnag` logging channel to the default daily stack, and installs the Bugsnag OOM bootstrapper. Set `BUGSNAG_API_KEY` and other Bugsnag options in the host environment; no credentials or project-specific identifiers are copied by the package.
 
+The installer also updates the host `AppServiceProvider` with the standard application defaults: `Model::preventLazyLoading()`, a lazy-loading violation handler that reports and continues in production but throws elsewhere, Vite prefetching, and anonymous cross-origin attributes for generated Vite script tags. Existing provider logic is preserved and the generated block is idempotent.
+
+The installer also adds the AWS SDK, Laravel AWS provider, S3 Flysystem adapter, and CloudFront URL signer. It creates host `config/aws.php` and `config/cloudfront-url-signer.php`, adds the standard S3 filesystem disk, and registers the AWS provider. Configure AWS and CloudFront credentials, buckets, key IDs, and private-key paths through the host environment and deployment storage; no credentials or private keys are copied.
+
 The command adds these regular Composer dependencies:
 
 - `bugsnag/bugsnag-laravel`
@@ -76,7 +80,7 @@ The command adds these regular Composer dependencies:
 - `tightenco/ziggy`
 - `inertiajs/inertia-laravel`
 
-The attachment backend and `dcodegroup/laravel-dsg-table` require their own Composer repositories and credentials. Configure the required private/public Composer repositories in the host project before running the installer; this package never copies registry credentials.
+The attachment backend, `dcodegroup/laravel-dsg-table`, and `dcodegroup/laravel-cloudfront-url-signer` require their own Composer repositories and credentials. Configure the required private/public Composer repositories in the host project before running the installer; this package never copies registry credentials.
 
 It adds this development dependency:
 

@@ -54,6 +54,10 @@ The installer configures Spatie Laravel Health in the host application, publishe
 
 The installer configures Bugsnag in the host application by publishing `config/bugsnag.php`, registering `BugsnagServiceProvider`, adding the `bugsnag` channel to the default daily log stack, and installing the OOM bootstrapper. Set `BUGSNAG_API_KEY` and any deployment-specific options in the host environment; never copy credentials into the application source.
 
+The installer updates the host `AppServiceProvider` with `Model::preventLazyLoading()`, a production-safe lazy-loading violation handler, Vite prefetching, and anonymous cross-origin script attributes. Production reports lazy-loading violations without aborting the request; non-production environments throw them. Existing application boot logic is preserved.
+
+The installer adds the AWS SDK, Laravel AWS provider, S3 Flysystem adapter, and CloudFront URL signer. It creates host AWS and CloudFront config files, adds the S3 filesystem disk, and registers the AWS provider. Configure credentials and private keys in the consuming application environment and deployment storage.
+
 The installer configures Spatie's local login-link integration in the host application's `config/login-link.php` and provides the `auth.login_link` translation (`Login as ADMIN`) in `lang/en/auth.php`. The generated login page uses the package Vue component to show the link only when the Inertia `environment` prop is `local`, targeting the seeded `forge@dcodegroup.com` account. The configuration restricts the feature to local environments and standard local hosts; review it before changing environments.
 
 ## Rules, References, and Templates
