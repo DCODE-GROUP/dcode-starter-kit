@@ -19,6 +19,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupHealth;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupLoginLink;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupSlack;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupUserManagement;
 use DcodeStarterKit\DcodeStarterKit\DcodeStarterKit;
@@ -111,6 +112,10 @@ it('registers the install artisan command', function () {
     $health = Mockery::mock(SetupHealth::class);
     $health->allows('setup')->andReturn(true);
     app()->instance(SetupHealth::class, $health);
+
+    $slack = Mockery::mock(SetupSlack::class);
+    $slack->allows('setup')->andReturn(true);
+    app()->instance(SetupSlack::class, $slack);
 
     $databaseSetup = Mockery::mock(RunDcodeStarterKitDatabaseSetup::class);
     $databaseSetup->allows('run')->andReturn(true);

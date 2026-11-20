@@ -58,6 +58,8 @@ The installer updates the host `AppServiceProvider` with `Model::preventLazyLoad
 
 The installer adds the AWS SDK, Laravel AWS provider, S3 Flysystem adapter, and CloudFront URL signer. It creates host AWS and CloudFront config files, adds the S3 filesystem disk, and registers the AWS provider. Configure credentials and private keys in the consuming application environment and deployment storage.
 
+The installer adds `laravel/slack-notification-channel`, Slack notification settings in `config/services.php`, and an opt-in Slack logging channel. It does not enable Slack in the default log stack or health notifications automatically.
+
 The installer configures Spatie's local login-link integration in the host application's `config/login-link.php` and provides the `auth.login_link` translation (`Login as ADMIN`) in `lang/en/auth.php`. The generated login page uses the package Vue component to show the link only when the Inertia `environment` prop is `local`, targeting the seeded `forge@dcodegroup.com` account. The configuration restricts the feature to local environments and standard local hosts; review it before changing environments.
 
 ## Rules, References, and Templates

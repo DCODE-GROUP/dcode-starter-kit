@@ -23,6 +23,7 @@ class InstallDcodeStarterKitDependencies
         'dcodegroup/laravel-cloudfront-url-signer',
         'laravel/fortify',
         'laravel/sanctum',
+        'laravel/slack-notification-channel',
         'league/flysystem-aws-s3-v3',
         'spatie/cpu-load-health-check',
         'spatie/laravel-health',

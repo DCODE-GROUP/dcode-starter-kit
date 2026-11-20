@@ -21,6 +21,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupHealth;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupLoginLink;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupSlack;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupUserManagement;
 use Illuminate\Console\Command;
@@ -50,6 +51,7 @@ class InstallCommand extends Command
         SetupUserManagement $userManagement,
         SetupLoginLink $loginLink,
         SetupHealth $health,
+        SetupSlack $slack,
         RunDcodeStarterKitDatabaseSetup $databaseSetup,
     ): int {
         $tenancyOption = $this->option('tenancy');
@@ -307,6 +309,19 @@ class InstallCommand extends Command
         }
 
         $this->info('Health checks configured successfully.');
+
+        if (! $slack->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupSlack::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Slack notifications configured successfully.');
 
         if (! $frontend->install(base_path(), function (string $output): void {
             $this->output->write($output);

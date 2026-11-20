@@ -19,6 +19,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupHealth;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupLoginLink;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupSlack;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupUserManagement;
 
@@ -87,6 +88,10 @@ beforeEach(function () {
     $health->allows('setup')->andReturn(true);
     app()->instance(SetupHealth::class, $health);
 
+    $slack = Mockery::mock(SetupSlack::class);
+    $slack->allows('setup')->andReturn(true);
+    app()->instance(SetupSlack::class, $slack);
+
     $databaseSetup = Mockery::mock(RunDcodeStarterKitDatabaseSetup::class);
     $databaseSetup->allows('run')->andReturn(true);
     app()->instance(RunDcodeStarterKitDatabaseSetup::class, $databaseSetup);
@@ -124,6 +129,7 @@ it('installs runtime and development dependencies with Composer from the applica
                 'dcodegroup/laravel-cloudfront-url-signer',
                 'laravel/fortify',
                 'laravel/sanctum',
+                'laravel/slack-notification-channel',
                 'league/flysystem-aws-s3-v3',
                 'spatie/cpu-load-health-check',
                 'spatie/laravel-health',
