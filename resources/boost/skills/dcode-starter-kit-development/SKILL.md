@@ -50,6 +50,8 @@ The generated host application also owns `lang/en/messages.php` and `resources/v
 
 The generated Inertia middleware shares `environment` and `breadcrumbs` props, and the application layout renders breadcrumbs with `DsgBreadcrumb`. The installer also creates a host `AuditLog` model, `AdminAuditLog` middleware, `auditing.php` configuration, audit migration, and daily `garbage-collect:audit-logs` scheduling for authenticated `/admin/*` requests.
 
+The Activity Log integration also adds a serialized `full_name` attribute to the host `User` model and the `getActivityLogUserName()`, `getActivityLogEmail()`, and `getActivityLogUser()` methods used by activity-log records.
+
 The installer configures Spatie Laravel Health in the host application, publishes its config and result migration, registers `HealthServiceProvider` with database, cache, Redis, and disk-space checks, and adds the public `health` JSON endpoint. Review that endpoint and the published notification settings before production use.
 
 The installer configures Bugsnag in the host application by publishing `config/bugsnag.php`, registering `BugsnagServiceProvider`, adding the `bugsnag` channel to the default daily log stack, and installing the OOM bootstrapper. Set `BUGSNAG_API_KEY` and any deployment-specific options in the host environment; never copy credentials into the application source.

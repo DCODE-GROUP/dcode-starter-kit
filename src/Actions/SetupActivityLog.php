@@ -80,6 +80,15 @@ class SetupActivityLog
             }
         }
 
+        if (! str_contains($contents, 'use Illuminate\\Database\\Eloquent\\Casts\\Attribute;')) {
+            $contents = preg_replace_callback(
+                '/(namespace App\\\\Models;\s*)/',
+                fn (array $matches): string => $matches[1]."\nuse Illuminate\\Database\\Eloquent\\Casts\\Attribute;\n",
+                $contents,
+                1,
+            ) ?? $contents;
+        }
+
         if (! str_contains($contents, 'implements HasActivityUser')) {
             $contents = preg_replace_callback(
                 '/(class\s+User\s+extends\s+[^\{]+)(\{)/',
@@ -116,8 +125,48 @@ class SetupActivityLog
             }
         }
 
+        if (! str_contains($contents, "'full_name'")) {
+            if (preg_match('/protected\s+(?:array\s+)?\$appends\s*=\s*\[/', $contents) === 1) {
+                $contents = preg_replace_callback(
+                    '/(protected\s+(?:array\s+)?\$appends\s*=\s*\[)/',
+                    fn (array $matches): string => $matches[1]."\n        'full_name',",
+                    $contents,
+                    1,
+                ) ?? $contents;
+            } else {
+                $contents = preg_replace_callback(
+                    '/(class\s+User\s+extends\s+[^\{]+\{)/',
+                    fn (array $matches): string => $matches[1]."\n    protected \$appends = ['full_name'];",
+                    $contents,
+                    1,
+                ) ?? $contents;
+            }
+        }
+
+        $methods = '';
+
+        if (! str_contains($contents, 'function fullName')) {
+            $methods .= <<<'PHP'
+
+    protected function fullName(): Attribute
+    {
+        return Attribute::make(
+            get: function (): string {
+                $name = trim(implode(' ', array_filter([
+                    $this->first_name ?? null,
+                    $this->middle_name ?? null,
+                    $this->last_name ?? null,
+                ])));
+
+                return $name !== '' ? $name : (string) ($this->name ?? $this->email);
+            },
+        );
+    }
+PHP;
+        }
+
         if (! str_contains($contents, 'function getActivityLogUserName')) {
-            $methods = <<<'PHP'
+            $methods .= <<<'PHP'
 
     public function getActivityLogUserName(): string
     {
@@ -135,6 +184,23 @@ class SetupActivityLog
         return (string) $this->email;
     }
 PHP;
+        }
+
+        if (! str_contains($contents, 'function getActivityLogUser')) {
+            $methods .= <<<'PHP'
+
+    public function getActivityLogUser(): array
+    {
+        return [
+            'id' => $this->id,
+            'full_name' => $this->getActivityLogUserName(),
+            'email' => $this->getActivityLogEmail(),
+        ];
+    }
+PHP;
+        }
+
+        if ($methods !== '') {
             $closingBrace = strrpos($contents, '}');
 
             if ($closingBrace === false) {

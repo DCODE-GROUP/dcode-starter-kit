@@ -46,10 +46,15 @@ it('publishes the activity-log config and integrates the host User model', funct
         ->and(file_get_contents($directory.'/app/Models/User.php'))
         ->toContain('use Dcodegroup\\ActivityLog\\Contracts\\HasActivityUser;')
         ->toContain('use Dcodegroup\\ActivityLog\\Support\\Traits\\ActivityLoggable;')
+        ->toContain('use Illuminate\\Database\\Eloquent\\Casts\\Attribute;')
         ->toContain('implements HasActivityUser')
         ->toContain('use ActivityLoggable;')
+        ->toContain("protected \$appends = ['full_name'];")
+        ->toContain('function fullName')
         ->toContain('function getActivityLogUserName')
-        ->toContain('function getActivityLogEmail');
+        ->toContain('function getActivityLogEmail')
+        ->toContain('function getActivityLogUser')
+        ->toContain("'full_name' => \$this->getActivityLogUserName()");
 });
 
 it('is idempotent when activity-log integration already exists', function () {
