@@ -14,10 +14,13 @@ class SetupApplicationDefaults
 
     private const string LAZY_LOADING_MARKER = 'Model::handleLazyLoadingViolationUsing';
 
+    private const string API_LIMITER_MARKER = "RateLimiter::for('api'";
+
     /** @param callable(string): void $output */
     public function setup(string $workingDirectory, callable $output): bool
     {
         try {
+            $this->copyInertiaConfiguration($workingDirectory);
             $this->updateApplicationProvider($workingDirectory);
             $output("Application defaults configured.\n");
 
@@ -26,6 +29,28 @@ class SetupApplicationDefaults
             $output($exception->getMessage()."\n");
 
             return false;
+        }
+    }
+
+    private function copyInertiaConfiguration(string $workingDirectory): void
+    {
+        $source = dirname(__DIR__, 2).'/resources/inertia/config/inertia.php';
+        $target = $workingDirectory.'/config/inertia.php';
+
+        if (is_file($target)) {
+            if (file_get_contents($source) !== file_get_contents($target)) {
+                throw new RuntimeException('Refusing to overwrite customised config/inertia.php.');
+            }
+
+            return;
+        }
+
+        if (! is_dir(dirname($target)) && ! mkdir(dirname($target), 0755, true) && ! is_dir(dirname($target))) {
+            throw new RuntimeException('Unable to create the config directory for inertia.php.');
+        }
+
+        if (! copy($source, $target)) {
+            throw new RuntimeException('Unable to create config/inertia.php.');
         }
     }
 
@@ -43,13 +68,18 @@ class SetupApplicationDefaults
             throw new RuntimeException('Unable to read app/Providers/AppServiceProvider.php.');
         }
 
-        if (str_contains($contents, self::MARKER) && str_contains($contents, self::LAZY_LOADING_MARKER)) {
+        if (str_contains($contents, self::MARKER)
+            && str_contains($contents, self::LAZY_LOADING_MARKER)
+            && str_contains($contents, self::API_LIMITER_MARKER)) {
             return;
         }
 
         foreach ([
             'use Exception;',
+            'use Illuminate\\Cache\\RateLimiting\\Limit;',
             'use Illuminate\\Database\\Eloquent\\Model;',
+            'use Illuminate\\Http\\Request;',
+            'use Illuminate\\Support\\Facades\\RateLimiter;',
             'use Illuminate\\Support\\Facades\\Vite;',
         ] as $import) {
             if (! str_contains($contents, $import)) {
@@ -79,22 +109,41 @@ class SetupApplicationDefaults
         });
 PHP;
 
-        if (str_contains($contents, self::MARKER)) {
-            $contents = preg_replace_callback(
-                '/(Model::preventLazyLoading\(\);)/',
-                static fn (array $matches): string => $matches[1].$lazyLoadingHandler,
-                $contents,
-                1,
-                $count,
-            ) ?? $contents;
+        $apiLimiter = <<<'PHP'
 
-            if ($count !== 1) {
-                throw new RuntimeException('Unable to add the lazy-loading violation handler safely.');
+        RateLimiter::for('api', fn (Request $request): Limit => Limit::perMinute(60)->by($request->user()?->id ?: $request->ip()));
+PHP;
+
+        if (str_contains($contents, self::MARKER)) {
+            if (! str_contains($contents, self::LAZY_LOADING_MARKER)) {
+                $contents = preg_replace_callback(
+                    '/(Model::preventLazyLoading\(\);)/',
+                    static fn (array $matches): string => $matches[1].$lazyLoadingHandler,
+                    $contents,
+                    1,
+                    $count,
+                ) ?? $contents;
+
+                if ($count !== 1) {
+                    throw new RuntimeException('Unable to add the lazy-loading violation handler safely.');
+                }
+            }
+
+            if (! str_contains($contents, self::API_LIMITER_MARKER)) {
+                $contents = str_replace(self::MARKER, self::MARKER.$apiLimiter, $contents, $count);
+
+                if ($count !== 1) {
+                    throw new RuntimeException('Unable to add the API rate limiter safely.');
+                }
             }
         } else {
             $defaults = <<<'PHP'
 
         // Dcode Starter Kit application defaults
+PHP;
+            $defaults .= $apiLimiter;
+            $defaults .= <<<'PHP'
+
         Model::preventLazyLoading();
 PHP;
             $defaults .= $lazyLoadingHandler;

@@ -51,6 +51,8 @@ it('adds the standard lazy-loading and Vite defaults to the host provider', func
         ->toContain('Model::handleLazyLoadingViolationUsing')
         ->toContain('if (app()->isProduction())')
         ->toContain('report($exception);')
+        ->toContain("RateLimiter::for('api'")
+        ->toContain('Limit::perMinute(60)')
         ->toContain('Vite::prefetch(3);')
         ->toContain("'crossorigin' => 'anonymous'");
 });
@@ -67,7 +69,9 @@ it('is idempotent and preserves existing provider logic', function () {
     expect($contents)->toContain('// Existing application boot logic.')
         ->and(substr_count($contents, 'Dcode Starter Kit application defaults'))->toBe(1)
         ->and(substr_count($contents, 'Model::preventLazyLoading();'))->toBe(1)
-        ->and(substr_count($contents, 'Model::handleLazyLoadingViolationUsing'))->toBe(1);
+        ->and(substr_count($contents, 'Model::handleLazyLoadingViolationUsing'))->toBe(1)
+        ->and(substr_count($contents, "RateLimiter::for('api'"))->toBe(1)
+        ->and(is_file($this->applicationDefaultsDirectory.'/config/inertia.php'))->toBeTrue();
 });
 
 it('upgrades an existing application defaults block with the production handler', function () {
@@ -82,5 +86,6 @@ it('upgrades an existing application defaults block with the production handler'
 
     expect($action->setup($this->applicationDefaultsDirectory, static function (): void {}))->toBeTrue()
         ->and(file_get_contents($path))->toContain('Model::handleLazyLoadingViolationUsing')
-        ->and(substr_count((string) file_get_contents($path), 'Model::handleLazyLoadingViolationUsing'))->toBe(1);
+        ->and(substr_count((string) file_get_contents($path), 'Model::handleLazyLoadingViolationUsing'))->toBe(1)
+        ->and(file_get_contents($path))->toContain("RateLimiter::for('api'");
 });

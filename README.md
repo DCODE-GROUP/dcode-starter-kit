@@ -60,6 +60,8 @@ The installer configures Bugsnag using the host application's published `config/
 
 The installer also updates the host `AppServiceProvider` with the standard application defaults: `Model::preventLazyLoading()`, a lazy-loading violation handler that reports and continues in production but throws elsewhere, Vite prefetching, and anonymous cross-origin attributes for generated Vite script tags. Existing provider logic is preserved and the generated block is idempotent.
 
+It also creates the host `config/inertia.php` testing configuration and registers the standard `api` rate limiter at 60 requests per minute, keyed by authenticated user ID or client IP.
+
 The installer also adds the AWS SDK, Laravel AWS provider, S3 Flysystem adapter, and CloudFront URL signer. It creates host `config/aws.php` and `config/cloudfront-url-signer.php`, adds the standard S3 filesystem disk, and registers the AWS provider. Configure AWS and CloudFront credentials, buckets, key IDs, and private-key paths through the host environment and deployment storage; no credentials or private keys are copied.
 
 The installer also adds `laravel/slack-notification-channel`, host Slack notification settings in `config/services.php`, and an opt-in Slack logging channel in `config/logging.php`. Slack is not added to the default log stack and health notifications remain unchanged until you configure and enable them with host environment values.
