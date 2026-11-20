@@ -1,0 +1,30 @@
+name: Process Pull Request
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: process-pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  call-workflow-ci:
+    uses: ./.github/workflows/ci.yml
+
+  call-workflow-tests:
+    uses: ./.github/workflows/run-tests.yml
+
+  ci-passed:
+    name: CI passed
+    runs-on: self-hosted
+    needs: [call-workflow-ci, call-workflow-tests]
+    if: always()
+    steps:
+      - name: Check required workflows
+        run: |
+          test "${{ contains(needs.*.result, 'failure') }}" = "false"
+          test "${{ contains(needs.*.result, 'cancelled') }}" = "false"

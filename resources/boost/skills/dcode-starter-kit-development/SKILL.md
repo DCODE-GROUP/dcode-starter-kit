@@ -66,6 +66,8 @@ The installer adds `laravel/slack-notification-channel`, Slack notification sett
 
 The installer configures Spatie's local login-link integration in the host application's `config/login-link.php` and provides the `auth.login_link` translation (`Login as ADMIN`) in `lang/en/auth.php`. The generated login page uses the package Vue component to show the link only when the Inertia `environment` prop is `local`, targeting the seeded `forge@dcodegroup.com` account. The configuration restricts the feature to local environments and standard local hosts; review it before changing environments.
 
+The installer also copies host-owned GitHub CI workflows, Dependabot configuration, and contribution issue/pull-request templates into `.github`. The CI uses self-hosted PHP 8.5 runners without a compatibility matrix. Existing customised GitHub files are not overwritten; merge the generated workflow or template manually and rerun the installer.
+
 ## Rules, References, and Templates
 
 Read before executing:

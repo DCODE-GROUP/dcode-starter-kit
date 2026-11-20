@@ -18,6 +18,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\SetupBugsnag;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupComposerHooks;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupDefaultUsersMigration;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupGithub;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupHealth;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupLoginLink;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
@@ -52,6 +53,7 @@ class InstallCommand extends Command
         SetupLoginLink $loginLink,
         SetupHealth $health,
         SetupSlack $slack,
+        SetupGithub $github,
         RunDcodeStarterKitDatabaseSetup $databaseSetup,
     ): int {
         $tenancyOption = $this->option('tenancy');
@@ -322,6 +324,19 @@ class InstallCommand extends Command
         }
 
         $this->info('Slack notifications configured successfully.');
+
+        if (! $github->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupGithub::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('GitHub workflows and contribution templates configured successfully.');
 
         if (! $frontend->install(base_path(), function (string $output): void {
             $this->output->write($output);

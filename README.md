@@ -48,6 +48,10 @@ The installer uses Laravel's conventional frontend entry points: `resources/css/
 
 The generated language file is installed at `lang/en/messages.php`, and the Inertia root view is installed at `resources/views/app.blade.php`. Host-generated code references these files directly rather than vendor-namespaced package views or translations.
 
+The installer adds host-owned GitHub workflows for self-hosted CI, package tests, and pull requests, plus a Dependabot configuration and pull-request/issue templates. These files are copied only when absent or unchanged; customised `.github` files stop the install with a conflict message. Deployment workflows and application-specific Docker/browser pipelines are not installed.
+
+GitHub automation is included for package maintenance: pull requests and pushes run reusable CI and package-test workflows on self-hosted runners using PHP 8.5, with PHPStan, Pint, type coverage, and Pest checks. The repository also includes Dependabot, release/changelog automation, a pull-request template, and bug/feature issue forms. Deployment, browser-test, and Docker-backed application workflows from application repositories are intentionally not included.
+
 The installer also configures `spatie/laravel-login-link` for local development. It creates the host `config/login-link.php` with the `local` environment and standard local host restrictions, provides `lang/en/auth.php` with the `auth.login_link` translation, and adds a `Login as ADMIN` Vue/Inertia link to the login screen. The link logs in as the seeded `forge@dcodegroup.com` user and is hidden outside the local environment. Review or customise the host configuration before using non-local environments; customised login-link configuration is never overwritten on reruns.
 
 The generated Inertia middleware shares the current application environment, authenticated user and permissions, backend navigation, and DSG breadcrumb data. The application layout renders those breadcrumbs using `DsgBreadcrumb`.
