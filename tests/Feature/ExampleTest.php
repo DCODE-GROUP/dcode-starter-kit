@@ -10,6 +10,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\RunDcodeStarterKitDatabaseSetup;
 use DcodeStarterKit\DcodeStarterKit\Actions\RunPint;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupApplicationDefaults;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupArchitectureTests;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAuditLogging;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAws;
@@ -50,6 +51,10 @@ it('registers the install artisan command', function () {
     $composerHooks = Mockery::mock(SetupComposerHooks::class);
     $composerHooks->allows('setup')->andReturn(true);
     app()->instance(SetupComposerHooks::class, $composerHooks);
+
+    $architectureTests = Mockery::mock(SetupArchitectureTests::class);
+    $architectureTests->allows('setup')->andReturn(true);
+    app()->instance(SetupArchitectureTests::class, $architectureTests);
 
     $phpstanConfig = Mockery::mock(SetupPhpstanConfig::class);
     $phpstanConfig->allows('setup')->andReturn(true);

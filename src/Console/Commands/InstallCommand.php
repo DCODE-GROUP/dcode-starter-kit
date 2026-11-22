@@ -12,6 +12,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\RunDcodeStarterKitDatabaseSetup;
 use DcodeStarterKit\DcodeStarterKit\Actions\RunPint;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupApplicationDefaults;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupArchitectureTests;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAuditLogging;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAws;
@@ -39,6 +40,7 @@ class InstallCommand extends Command
         InstallDcodeStarterKitDependencies $installer,
         InstallDcodeStarterKitFrontend $frontend,
         SetupComposerHooks $composerHooks,
+        SetupArchitectureTests $architectureTests,
         SetupPhpstanConfig $phpstanConfig,
         SetupMacroServiceProvider $macroServiceProvider,
         SetupDefaultUsersMigration $usersMigration,
@@ -246,6 +248,19 @@ class InstallCommand extends Command
         }
 
         $this->info('Default users migration configured successfully.');
+
+        if (! $architectureTests->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupArchitectureTests::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Architecture tests configured successfully.');
 
         if (! $phpstanConfig->setup(
             base_path(),
