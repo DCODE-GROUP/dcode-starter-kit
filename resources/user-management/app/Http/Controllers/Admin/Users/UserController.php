@@ -98,7 +98,7 @@ class UserController extends Controller
         $user->forceFill($data)->save();
         $this->updateProfilePhoto($user, $profilePhoto, $removeProfilePhoto);
 
-        if ($roleIds !== null && ! $isCurrentUser) {
+        if ($roleIds !== null) {
             $user->syncRoles($roleIds);
         }
 

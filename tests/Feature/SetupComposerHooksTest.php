@@ -41,7 +41,7 @@ it('adds the project starter hooks while preserving other composer metadata', fu
                 "echo '\n\n\\033[0;36mcghooks - Pre-Commit: \\033[0m \n'",
                 "echo 'Committing as: \\033[0;32m'\$(git config user.name) '('\$(git config user.email)') \\033[0m\n'",
                 "echo '\n\\033[0;35mRunning Pint (PHP CS Fixer): \\033[0m\n'",
-                'vendor/bin/pint',
+                'vendor/bin/pint --dirty',
                 "echo '\n\\033[0;35mRunning ESLint: \\033[0m\n'",
                 "echo '    - pnpm run lint:fix'",
                 "echo '\n'",

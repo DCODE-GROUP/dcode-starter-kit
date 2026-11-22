@@ -74,10 +74,27 @@ class SetupAttachments
             throw new RuntimeException('Unable to read config/media-library.php.');
         }
 
+        $originalContents = $contents;
+        $contents = str_replace(
+            [
+                "use Spatie\\MediaLibraryPro\\Models\\TemporaryUpload;\n",
+                "'temporary_upload_model' => TemporaryUpload::class,",
+            ],
+            [
+                '',
+                "'temporary_upload_model' => class_exists('Spatie\\\\MediaLibraryPro\\Models\\TemporaryUpload') ? 'Spatie\\\\MediaLibraryPro\\Models\\TemporaryUpload' : null,",
+            ],
+            $contents,
+        );
+
         $desiredMediaModel = 'Dcodegroup\\LaravelAttachments\\Models\\Media::class';
         $desiredPathGenerator = 'Dcodegroup\\LaravelAttachments\\MediaLibrary\\MediaPathGenerator::class';
 
         if (str_contains($contents, $desiredMediaModel) && str_contains($contents, $desiredPathGenerator)) {
+            if ($contents !== $originalContents && file_put_contents($mediaConfigPath, $contents) === false) {
+                throw new RuntimeException('Unable to configure config/media-library.php for Laravel Attachments.');
+            }
+
             return;
         }
 

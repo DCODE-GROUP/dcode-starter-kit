@@ -9,6 +9,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishAttachmentMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\RunDcodeStarterKitDatabaseSetup;
+use DcodeStarterKit\DcodeStarterKit\Actions\RunPint;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupApplicationDefaults;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
@@ -22,6 +23,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\SetupGithub;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupHealth;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupLoginLink;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupPhpstanConfig;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSlack;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupUserManagement;
@@ -37,6 +39,7 @@ class InstallCommand extends Command
         InstallDcodeStarterKitDependencies $installer,
         InstallDcodeStarterKitFrontend $frontend,
         SetupComposerHooks $composerHooks,
+        SetupPhpstanConfig $phpstanConfig,
         SetupMacroServiceProvider $macroServiceProvider,
         SetupDefaultUsersMigration $usersMigration,
         SetupSpatiePermission $permissionSetup,
@@ -55,6 +58,7 @@ class InstallCommand extends Command
         SetupSlack $slack,
         SetupGithub $github,
         RunDcodeStarterKitDatabaseSetup $databaseSetup,
+        RunPint $pint,
     ): int {
         $tenancyOption = $this->option('tenancy');
         $tenancy = null;
@@ -243,6 +247,19 @@ class InstallCommand extends Command
 
         $this->info('Default users migration configured successfully.');
 
+        if (! $phpstanConfig->setup(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.SetupPhpstanConfig::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('PHPStan configuration created successfully.');
+
         if (! $composerHooks->setup(
             base_path(),
             function (string $output): void {
@@ -360,6 +377,19 @@ class InstallCommand extends Command
         }
 
         $this->info('Database migrations and starter seeding completed successfully.');
+
+        if (! $pint->run(
+            base_path(),
+            function (string $output): void {
+                $this->output->write($output);
+            },
+        )) {
+            $this->error('Dcode Starter Kit installation failed during '.RunPint::STEP.'.');
+
+            return self::FAILURE;
+        }
+
+        $this->info('Application formatted successfully.');
 
         return self::SUCCESS;
     }

@@ -7,6 +7,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\InstallDcodeStarterKitFrontend;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishActivityLogMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\PublishAttachmentMigrations;
 use DcodeStarterKit\DcodeStarterKit\Actions\RunDcodeStarterKitDatabaseSetup;
+use DcodeStarterKit\DcodeStarterKit\Actions\RunPint;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupActivityLog;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupApplicationDefaults;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupAttachments;
@@ -19,6 +20,7 @@ use DcodeStarterKit\DcodeStarterKit\Actions\SetupFortifySanctum;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupHealth;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupLoginLink;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupMacroServiceProvider;
+use DcodeStarterKit\DcodeStarterKit\Actions\SetupPhpstanConfig;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSlack;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupSpatiePermission;
 use DcodeStarterKit\DcodeStarterKit\Actions\SetupUserManagement;
@@ -27,6 +29,10 @@ beforeEach(function () {
     $composerHooks = Mockery::mock(SetupComposerHooks::class);
     $composerHooks->allows('setup')->andReturn(true);
     app()->instance(SetupComposerHooks::class, $composerHooks);
+
+    $phpstanConfig = Mockery::mock(SetupPhpstanConfig::class);
+    $phpstanConfig->allows('setup')->andReturn(true);
+    app()->instance(SetupPhpstanConfig::class, $phpstanConfig);
 
     $permissionSetup = Mockery::mock(SetupSpatiePermission::class);
     $permissionSetup->allows('setup')->andReturn(true);
@@ -95,6 +101,10 @@ beforeEach(function () {
     $databaseSetup = Mockery::mock(RunDcodeStarterKitDatabaseSetup::class);
     $databaseSetup->allows('run')->andReturn(true);
     app()->instance(RunDcodeStarterKitDatabaseSetup::class, $databaseSetup);
+
+    $pint = Mockery::mock(RunPint::class);
+    $pint->allows('run')->andReturn(true);
+    app()->instance(RunPint::class, $pint);
 
     $activityLogMigrations = Mockery::mock(PublishActivityLogMigrations::class);
     $activityLogMigrations->allows('publish')->andReturn(true);

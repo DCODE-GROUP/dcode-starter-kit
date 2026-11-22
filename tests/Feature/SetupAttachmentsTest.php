@@ -40,11 +40,13 @@ it('publishes attachment config, registers routes and integrates User', function
 <?php
 
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\MediaLibraryPro\Models\TemporaryUpload;
 use Spatie\MediaLibrary\Support\PathGenerator\DefaultPathGenerator;
 
 return [
     'media_model' => Media::class,
     'path_generator' => DefaultPathGenerator::class,
+    'temporary_upload_model' => TemporaryUpload::class,
 ];
 PHP);
         }
@@ -61,6 +63,9 @@ PHP);
         ->and(file_get_contents($directory.'/config/media-library.php'))
         ->toContain('Dcodegroup\\LaravelAttachments\\Models\\Media;')
         ->toContain('MediaPathGenerator::class')
+        ->and(file_get_contents($directory.'/config/media-library.php'))
+        ->toContain("'temporary_upload_model' => class_exists(")
+        ->not->toContain('use Spatie\\MediaLibraryPro\\Models\\TemporaryUpload;')
         ->and(file_get_contents($directory.'/app/Models/User.php'))
         ->toContain('HasMediaUser')
         ->toContain('getMediaUserName');
@@ -100,11 +105,13 @@ it('can be rerun after attachment setup is complete', function () {
 <?php
 
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\MediaLibraryPro\Models\TemporaryUpload;
 use Spatie\MediaLibrary\Support\PathGenerator\DefaultPathGenerator;
 
 return [
     'media_model' => Media::class,
     'path_generator' => DefaultPathGenerator::class,
+    'temporary_upload_model' => TemporaryUpload::class,
 ];
 PHP);
         }

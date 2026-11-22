@@ -3,6 +3,7 @@
 namespace App\Actions\Fortify;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -37,6 +38,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
         if ($input['email'] !== $user->email && $user instanceof MustVerifyEmail) {
             $data['email_verified_at'] = null;
+
+            /** @var Model&MustVerifyEmail $user */
             $user->forceFill($data)->save();
             $user->sendEmailVerificationNotification();
 
